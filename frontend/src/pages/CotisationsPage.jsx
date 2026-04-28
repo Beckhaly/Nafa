@@ -9,7 +9,9 @@ import Spinner from '../components/Spinner'
 import Modal from '../components/Modal'
 import PaymentModal from '../components/PaymentModal'
 import SearchSelect from '../components/SearchSelect'
+import StatusBadge from '../components/StatusBadge'
 import RecapTab from './RecapCotisationsPage'
+import { useStatusLabels, FALLBACK_STATUTS } from '../hooks/useStatusLabels'
 
 dayjs.locale('fr')
 
@@ -293,6 +295,8 @@ function MensuelTab() {
    TAB 2 — Exceptionnel : appels de fonds groupés par événements
 ═══════════════════════════════════════════════════════════════════════ */
 function ExceptionnelTab() {
+  const { settings } = useSettings()
+  const statusLabels = useStatusLabels()
   const [items,      setItems]      = useState([])
   const [members,    setMembers]    = useState([])
   const [events,     setEvents]     = useState([])
@@ -303,6 +307,8 @@ function ExceptionnelTab() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [modal,      setModal]      = useState(null) // null | 'create' | { mode:'detail', eventId, sourceType:'event'|'annonce' } | { mode:'pay', item }
   const [detail,     setDetail]     = useState(null) // { eventId/annonceId, cotisations, sourceType }
+
+  const cexStatusMap = statusLabels['statuts-cotisations-exceptionnelles'] || FALLBACK_STATUTS['statuts-cotisations-exceptionnelles']
 
   const reload = () => setRefreshKey((k) => k + 1)
 
@@ -574,9 +580,11 @@ function CexCard({ item, onPay }) {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={STATUT_BADGE[item.statut] ?? 'badge bg-gray-100 text-gray-500'}>
-            {STATUT_LABEL[item.statut] ?? item.statut}
-          </span>
+          <StatusBadge
+            statut={item.statut}
+            statusData={cexStatusMap[item.statut]}
+            size="sm"
+          />
           {item.statut !== 'paid' && (
             <button className="btn-primary text-xs py-1 px-3" onClick={onPay}>
               Payer

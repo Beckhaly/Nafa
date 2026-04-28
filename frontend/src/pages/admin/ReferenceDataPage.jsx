@@ -6,15 +6,27 @@ import Modal from '../../components/Modal'
 
 /* ── Config des tables de référence ──────────────────────────────────────── */
 const REFS = [
+  /* ── Rôles et utilisateurs ──────────────────────────────────────────────── */
   {
     key: 'roles-membres',
     label: 'Rôles membres',
     fields: [
       { name: 'libelle',     label: 'Libellé',     required: true,  type: 'text' },
-      { name: 'description', label: 'Description', required: false, type: 'text' },
+      { name: 'description', label: 'Description', required: false, type: 'textarea' },
       { name: 'ordre',       label: 'Ordre',       required: false, type: 'number' },
     ],
   },
+  {
+    key: 'roles-utilisateurs',
+    label: 'Rôles utilisateurs',
+    fields: [
+      { name: 'code',        label: 'Code',        required: true,  type: 'text' },
+      { name: 'libelle',     label: 'Libellé',     required: true,  type: 'text' },
+      { name: 'description', label: 'Description', required: false, type: 'textarea' },
+    ],
+  },
+
+  /* ── Catégories & Types ───────────────────────────────────────────────── */
   {
     key: 'categories-depenses',
     label: 'Catégories dépenses',
@@ -39,13 +51,87 @@ const REFS = [
       { name: 'icone',   label: 'Icône',   required: false, type: 'text' },
     ],
   },
+
+  /* ── Statuts & Énumérations ────────────────────────────────────────────── */
   {
-    key: 'roles-utilisateurs',
-    label: 'Rôles utilisateurs',
+    key: 'statuts-membres',
+    label: 'Statuts membres',
     fields: [
-      { name: 'code',        label: 'Code',        required: true,  type: 'text' },
-      { name: 'libelle',     label: 'Libellé',     required: true,  type: 'text' },
-      { name: 'description', label: 'Description', required: false, type: 'text' },
+      { name: 'libelle',     label: 'Libellé',     required: true, type: 'text' },
+      { name: 'icone',       label: 'Icône',       required: false, type: 'text' },
+      { name: 'couleur',     label: 'Couleur',     required: false, type: 'color' },
+      { name: 'description', label: 'Description', required: false, type: 'textarea' },
+    ],
+  },
+  {
+    key: 'statuts-contributions',
+    label: 'Statuts cotisations',
+    fields: [
+      { name: 'libelle',     label: 'Libellé',     required: true, type: 'text' },
+      { name: 'icone',       label: 'Icône',       required: false, type: 'text' },
+      { name: 'couleur',     label: 'Couleur',     required: false, type: 'color' },
+      { name: 'description', label: 'Description', required: false, type: 'textarea' },
+    ],
+  },
+  {
+    key: 'statuts-cotisations-exceptionnelles',
+    label: 'Statuts CEX',
+    fields: [
+      { name: 'libelle',     label: 'Libellé',     required: true, type: 'text' },
+      { name: 'icone',       label: 'Icône',       required: false, type: 'text' },
+      { name: 'couleur',     label: 'Couleur',     required: false, type: 'color' },
+      { name: 'description', label: 'Description', required: false, type: 'textarea' },
+    ],
+  },
+  {
+    key: 'statuts-loans',
+    label: 'Statuts prêts',
+    fields: [
+      { name: 'libelle',     label: 'Libellé',     required: true, type: 'text' },
+      { name: 'icone',       label: 'Icône',       required: false, type: 'text' },
+      { name: 'couleur',     label: 'Couleur',     required: false, type: 'color' },
+      { name: 'description', label: 'Description', required: false, type: 'textarea' },
+    ],
+  },
+  {
+    key: 'statuts-events',
+    label: 'Statuts événements',
+    fields: [
+      { name: 'libelle',     label: 'Libellé',     required: true, type: 'text' },
+      { name: 'icone',       label: 'Icône',       required: false, type: 'text' },
+      { name: 'couleur',     label: 'Couleur',     required: false, type: 'color' },
+      { name: 'description', label: 'Description', required: false, type: 'textarea' },
+    ],
+  },
+  {
+    key: 'statuts-participants',
+    label: 'Statuts participants',
+    fields: [
+      { name: 'libelle',     label: 'Libellé',     required: true, type: 'text' },
+      { name: 'icone',       label: 'Icône',       required: false, type: 'text' },
+      { name: 'couleur',     label: 'Couleur',     required: false, type: 'color' },
+      { name: 'description', label: 'Description', required: false, type: 'textarea' },
+    ],
+  },
+  {
+    key: 'canaux-diffusion',
+    label: 'Canaux diffusion',
+    fields: [
+      { name: 'libelle',       label: 'Libellé',       required: true, type: 'text' },
+      { name: 'icone',         label: 'Icône',         required: false, type: 'text' },
+      { name: 'couleur',       label: 'Couleur',       required: false, type: 'color' },
+      { name: 'api_provider',  label: 'API Provider',  required: false, type: 'text' },
+      { name: 'description',   label: 'Description',   required: false, type: 'textarea' },
+    ],
+  },
+  {
+    key: 'statuts-diffusions',
+    label: 'Statuts diffusions',
+    fields: [
+      { name: 'libelle',     label: 'Libellé',     required: true, type: 'text' },
+      { name: 'icone',       label: 'Icône',       required: false, type: 'text' },
+      { name: 'couleur',     label: 'Couleur',     required: false, type: 'color' },
+      { name: 'description', label: 'Description', required: false, type: 'textarea' },
     ],
   },
 ]
@@ -86,10 +172,13 @@ export default function ReferenceDataPage() {
 
 /* ── Table CRUD ─────────────────────────────────────────────────────────── */
 function RefTable({ config }) {
-  const [rows,      setRows]      = useState([])
-  const [loading,   setLoading]   = useState(true)
-  const [modal,     setModal]     = useState(null) // null | 'create' | { mode:'edit', row }
-  const [deleting,  setDeleting]  = useState(null)
+  const [rows,       setRows]       = useState([])
+  const [loading,    setLoading]    = useState(true)
+  const [modal,      setModal]      = useState(null) // null | 'create' | { mode:'edit', row }
+  const [deleting,   setDeleting]   = useState(null)
+  const [search,     setSearch]     = useState('')
+  const [sortCol,    setSortCol]    = useState(null)
+  const [sortDir,    setSortDir]    = useState('asc')
 
   const load = () => {
     setLoading(true)
@@ -99,6 +188,30 @@ function RefTable({ config }) {
   }
 
   useEffect(() => { load() }, [config.key])
+
+  // Filter rows by libelle
+  const filteredRows = rows.filter((row) =>
+    !search || row.libelle?.toLowerCase().includes(search.toLowerCase())
+  )
+
+  // Sort rows
+  const sortedRows = sortCol
+    ? [...filteredRows].sort((a, b) => {
+        const aVal = a[sortCol] ?? ''
+        const bVal = b[sortCol] ?? ''
+        const cmp = String(aVal).localeCompare(String(bVal))
+        return sortDir === 'asc' ? cmp : -cmp
+      })
+    : filteredRows
+
+  const toggleSort = (col) => {
+    if (sortCol === col) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortCol(col)
+      setSortDir('asc')
+    }
+  }
 
   const handleDelete = async (row) => {
     if (!window.confirm(`Supprimer "${row.libelle}" ?`)) return
@@ -119,7 +232,14 @@ function RefTable({ config }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex gap-3 justify-between">
+        <input
+          type="text"
+          placeholder="Rechercher par libellé…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="input flex-1 max-w-sm"
+        />
         <button className="btn-primary" onClick={() => setModal('create')}>
           + Ajouter
         </button>
@@ -128,59 +248,81 @@ function RefTable({ config }) {
       {loading ? <Spinner /> : (
         rows.length === 0
           ? <div className="card text-center py-10 text-gray-400">Aucune entrée</div>
-          : <div className="card overflow-hidden p-0">
-              <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide w-12">#</th>
-                    {cols.map((c) => (
-                      <th key={c.name} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        {c.label}
-                      </th>
-                    ))}
-                    <th className="px-4 py-3 w-24" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {rows.map((row) => (
-                    <tr key={row.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-400 text-xs font-mono">{row.id}</td>
+          : <>
+              <div className="card overflow-hidden p-0">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-100 sticky top-0">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide w-12">#</th>
                       {cols.map((c) => (
-                        <td key={c.name} className="px-4 py-3 text-gray-700">
-                          {c.type === 'color' && row[c.name]
-                            ? <span className="flex items-center gap-2">
-                                <span
-                                  className="inline-block w-4 h-4 rounded-full border border-gray-200 flex-shrink-0"
-                                  style={{ backgroundColor: row[c.name] }}
-                                />
-                                {row[c.name]}
-                              </span>
-                            : (row[c.name] ?? <span className="text-gray-300">—</span>)
-                          }
-                        </td>
+                        <th
+                          key={c.name}
+                          onClick={() => toggleSort(c.name)}
+                          className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide cursor-pointer transition-colors ${
+                            sortCol === c.name ? 'bg-blue-50 text-blue-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {c.label}
+                            {sortCol === c.name && (
+                              <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
                       ))}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button
-                            onClick={() => setModal({ mode: 'edit', row })}
-                            className="text-xs text-blue-600 hover:underline"
-                          >
-                            Modifier
-                          </button>
-                          <button
-                            onClick={() => handleDelete(row)}
-                            disabled={deleting === row.id}
-                            className="text-xs text-red-500 hover:underline disabled:opacity-40"
-                          >
-                            {deleting === row.id ? '…' : 'Supprimer'}
-                          </button>
-                        </div>
-                      </td>
+                      <th className="px-4 py-3 w-24" />
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {sortedRows.map((row) => (
+                      <tr key={row.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-gray-400 text-xs font-mono">{row.id}</td>
+                        {cols.map((c) => (
+                          <td key={c.name} className="px-4 py-3 text-gray-700">
+                            {c.type === 'color' && row[c.name]
+                              ? <span className="flex items-center gap-2">
+                                  <span
+                                    className="inline-block w-4 h-4 rounded border border-gray-200 flex-shrink-0"
+                                    style={{ backgroundColor: row[c.name] }}
+                                    title={row[c.name]}
+                                  />
+                                  <code className="text-xs">{row[c.name]}</code>
+                                </span>
+                              : c.name === 'icone' && row[c.name]
+                              ? <span className="text-lg">{row[c.name]}</span>
+                              : (row[c.name] ?? <span className="text-gray-300">—</span>)
+                            }
+                          </td>
+                        ))}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2 justify-end">
+                            <button
+                              onClick={() => setModal({ mode: 'edit', row })}
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              Modifier
+                            </button>
+                            <button
+                              onClick={() => handleDelete(row)}
+                              disabled={deleting === row.id}
+                              className="text-xs text-red-500 hover:underline disabled:opacity-40"
+                            >
+                              {deleting === row.id ? '…' : 'Supprimer'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-gray-500">
+                {filteredRows.length === rows.length
+                  ? `${rows.length} ${rows.length === 1 ? 'entrée' : 'entrées'}`
+                  : `${filteredRows.length} sur ${rows.length} ${rows.length === 1 ? 'entrée' : 'entrées'}`
+                }
+              </p>
+            </>
       )}
 
       {/* Create / Edit modal */}
@@ -258,6 +400,15 @@ function RefForm({ config, initial, onSave, onClose }) {
                 maxLength={7}
               />
             </div>
+          ) : f.type === 'textarea' ? (
+            <textarea
+              className="input"
+              value={form[f.name] ?? ''}
+              onChange={set(f.name)}
+              required={f.required}
+              rows={3}
+              placeholder={`Entrez ${f.label.toLowerCase()}`}
+            />
           ) : (
             <input
               type={f.type}

@@ -52,6 +52,81 @@ class AdminController extends Controller
                     'description' => 'nullable|string|max:255',
                 ],
             ],
+
+            /* ── Statuts & Énumérations ──────────────────────────────────────── */
+            'statuts-membres' => [
+                'table'    => 'statuts_membres',
+                'validate' => [
+                    'libelle'     => 'required|string|max:80',
+                    'icone'       => 'nullable|string|max:50',
+                    'couleur'     => 'nullable|string|max:7',
+                    'description' => 'nullable|string',
+                ],
+            ],
+            'statuts-contributions' => [
+                'table'    => 'statuts_contributions',
+                'validate' => [
+                    'libelle'     => 'required|string|max:80',
+                    'icone'       => 'nullable|string|max:50',
+                    'couleur'     => 'nullable|string|max:7',
+                    'description' => 'nullable|string',
+                ],
+            ],
+            'statuts-cotisations-exceptionnelles' => [
+                'table'    => 'statuts_cotisations_exceptionnelles',
+                'validate' => [
+                    'libelle'     => 'required|string|max:80',
+                    'icone'       => 'nullable|string|max:50',
+                    'couleur'     => 'nullable|string|max:7',
+                    'description' => 'nullable|string',
+                ],
+            ],
+            'statuts-loans' => [
+                'table'    => 'statuts_loans',
+                'validate' => [
+                    'libelle'     => 'required|string|max:80',
+                    'icone'       => 'nullable|string|max:50',
+                    'couleur'     => 'nullable|string|max:7',
+                    'description' => 'nullable|string',
+                ],
+            ],
+            'statuts-events' => [
+                'table'    => 'statuts_events',
+                'validate' => [
+                    'libelle'     => 'required|string|max:80',
+                    'icone'       => 'nullable|string|max:50',
+                    'couleur'     => 'nullable|string|max:7',
+                    'description' => 'nullable|string',
+                ],
+            ],
+            'statuts-participants' => [
+                'table'    => 'statuts_participants',
+                'validate' => [
+                    'libelle'     => 'required|string|max:80',
+                    'icone'       => 'nullable|string|max:50',
+                    'couleur'     => 'nullable|string|max:7',
+                    'description' => 'nullable|string',
+                ],
+            ],
+            'canaux-diffusion' => [
+                'table'    => 'canaux_diffusion',
+                'validate' => [
+                    'libelle'      => 'required|string|max:80',
+                    'icone'        => 'nullable|string|max:50',
+                    'couleur'      => 'nullable|string|max:7',
+                    'api_provider' => 'nullable|string|max:50',
+                    'description'  => 'nullable|string',
+                ],
+            ],
+            'statuts-diffusions' => [
+                'table'    => 'statuts_diffusions',
+                'validate' => [
+                    'libelle'     => 'required|string|max:80',
+                    'icone'       => 'nullable|string|max:50',
+                    'couleur'     => 'nullable|string|max:7',
+                    'description' => 'nullable|string',
+                ],
+            ],
         ];
 
         abort_if(! isset($map[$key]), 404, 'Table de référence inconnue');

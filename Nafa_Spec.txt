@@ -1,0 +1,279 @@
+Nafa — Système de Gestion Associative
+Spécification Technique Complète
+Version 1.0 — Avril 2025
+
+═══════════════════════════════════════════════════════════════════════════════
+
+1. CONTEXTE & OBJECTIFS
+
+Nafa est une plateforme numérique centralisée conçue pour transformer la gestion
+manuelle des associations (papier, tableurs Excel dispersés) en un système
+sécurisé, transparent et professionnel. Elle répond aux besoins opérationnels
+des ONG, tontines et associations de toute taille.
+
+Problème identifié : La gestion sur papier et Excel engendre des pertes
+d'informations, des doublons, des erreurs comptables et un manque total de
+transparence financière pour les membres et la direction.
+
+1.1 Objectifs fonctionnels
+
+• Centralisation des données : Créer une source unique de vérité pour toutes les
+  informations des membres. Éliminer les doublons et les pertes d'information en
+  consolidant les données dans une base MySQL structurée.
+
+• Transparence financière : Permettre un suivi rigoureux et en temps réel des flux
+  de trésorerie : cotisations, dons, dépenses et remboursements de prêts.
+  Renforcer la confiance entre membres et direction.
+
+• Automatisation du suivi : Identifier instantanément les retards de paiement et
+  les créances en souffrance sans aucun calcul manuel grâce aux procédures
+  stockées MySQL.
+
+• Professionnalisation : Produire des documents officiels de haute qualité (cartes
+  de membres, reçus de paiement, bilans annuels) de manière instantanée et
+  reproductible.
+
+• Aide à la décision : Fournir des indicateurs visuels sur le tableau de bord
+  pour permettre aux dirigeants de piloter l'association avec des données réelles
+  et actualisées.
+
+Fonctionnalités principales :
+  ✓ Gestion des membres
+  ✓ Carte de membre
+  ✓ Gestion des cotisations
+  ✓ Gestion des événements
+  ✓ Gestion des prêts
+  ✓ Gestion des rapports
+  ✓ Suivi des retards de paiement
+  ✓ États de paiement des membres
+  ✓ Suivi des créances
+  ✓ Situation de caisse
+  ✓ Gestion des comptes utilisateurs
+  ✓ Tableau de bord
+
+═══════════════════════════════════════════════════════════════════════════════
+
+2. ARCHITECTURE TECHNIQUE
+
+Nafa repose sur une architecture hybride à trois niveaux :
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         ARCHITECTURE À 3 NIVEAUX                            │
+├──────────────────────────┬──────────────────────┬──────────────────────────┤
+│   Base de Données        │      Backend         │       Frontend           │
+├──────────────────────────┼──────────────────────┼──────────────────────────┤
+│ MySQL 8.0                │ Laravel 11           │ React + TailwindCSS      │
+│ ─ Intelligence métier    │ ─ Passerelle API     │ ─ Interface utilisateur  │
+│ ─ Procédures stockées    │   sécurisée          │   SPA                    │
+│ ─ Transactions ACID      │ ─ API RESTful        │ ─ Dashboard réactif      │
+│ ─ Index optimisés        │ ─ Auth. Sanctum      │ ─ Composants modulaires  │
+│ ─ Audit log immuable     │ ─ Gestion fichiers   │ ─ Recharts / D3          │
+│                          │ ─ Contrôleurs légers │ ─ Formulaires dynamiques │
+└──────────────────────────┴──────────────────────┴──────────────────────────┘
+
+Procédures clés :                    Contrôleurs API :              Pages React :
+  • sp_upsert_member                   • MemberController             • Dashboard
+  • sp_pay_contribution                • FinanceController            • MatricePage
+  • sp_generate_loan_schedule          • LoanController               • LoanList
+  • sp_get_monthly_pivot               • ReportController             • MemberCard
+                                                                      • PaymentModal
+
+2.1 PRINCIPE FONDAMENTAL : Délégation à la Base de Données
+
+RÈGLE D'OR : Aucun calcul financier ou insertion complexe ne se fait dans le
+code Laravel. Toute la logique métier est déléguée à MySQL via des procédures
+stockées. Laravel agit exclusivement comme passerelle API.
+
+Ce principe garantit :
+  ✓ L'intégrité des données même en cas de bug applicatif
+  ✓ La facilité des tests unitaires sur la couche base de données
+  ✓ La possibilité de changer le framework backend sans réécrire la logique
+
+═══════════════════════════════════════════════════════════════════════════════
+
+3. MODÈLE DE DONNÉES
+
+3.1 Tables principales
+
+TABLE members
+─────────────────────────────────────────────────────────────────────────────
+  id                BIGINT UNSIGNED (PK)
+  matricule         VARCHAR(20) (UQ) — Format MBR-AAAA-XXX (généré automatique)
+  nom               VARCHAR(100) — Nom de famille
+  prenom            VARCHAR(100) — Prénom
+  telephone         VARCHAR(20) — Numéro principal
+  email             VARCHAR(150) (UQ, NULL) — Adresse email optionnelle
+  date_adhesion     DATE — Date d'inscription officielle
+  statut            ENUM (actif | inactif | suspendu)
+  role              VARCHAR(50) — Président, Trésorier, Membre…
+  created_at        TIMESTAMP — Horodatage de création
+
+TABLE contributions
+─────────────────────────────────────────────────────────────────────────────
+  id                BIGINT UNSIGNED (PK)
+  member_id         BIGINT UNSIGNED (FK → members.id)
+  annee             YEAR — Exercice comptable
+  mois              TINYINT — 1 à 12
+  montant_du        DECIMAL(15,2) — Cotisation mensuelle théorique
+  montant_paye      DECIMAL(15,2) — Montant effectivement versé
+  statut            ENUM (paid | partial | unpaid)
+  date_paiement     DATE (NULL) — Date du versement
+  reference_recu    VARCHAR(30) (UQ, NULL) — Numéro de reçu généré
+  created_at        TIMESTAMP — Horodatage
+
+3.2 Procédures Stockées
+
+sp_upsert_member
+  Domaine : Membres
+  Objectif : Insertion ou mise à jour sécurisée d'un membre avec génération
+             automatique du matricule au format MBR-AAAA-XXX.
+             Vérifie les doublons par email/téléphone avant insertion.
+
+sp_pay_contribution
+  Domaine : Finances
+  Objectif : Enregistrement comptable d'un paiement de cotisation.
+             Met à jour le statut (paid / partial), crée le reçu numérique
+             et met à jour le solde de caisse dans la même transaction.
+
+sp_generate_loan_schedule
+  Domaine : Prêts
+  Objectif : Calcul du tableau d'amortissement complet (mensualités, intérêts,
+             capital restant). Génère toutes les lignes de remboursement
+             prévisionnelles en une seule procédure.
+
+sp_get_monthly_pivot
+  Domaine : Rapports
+  Objectif : Génération de la matrice de pointage Janvier–Décembre pour une
+             année donnée. Retourne une ligne par membre et une colonne par
+             mois avec le statut de cotisation.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+4. SPÉCIFICATIONS INTERFACE (UX/UI)
+
+4.A Tableau de Bord (Dashboard)
+
+Le tableau de bord est le point d'entrée de l'application. Il fournit une vision
+synthétique et immédiate de la santé financière et opérationnelle.
+
+Indicateurs KPI :
+  • Solde de caisse actuel — mis à jour en temps réel après chaque transaction
+  • Taux de recouvrement du mois — ratio cotisations / théorique (%)
+  • Nombre de membres actifs — décompte des membres statut = actif
+  • Créances en souffrance — total des montants impayés (3 derniers mois)
+
+Graphiques :
+  • Évolution recettes vs dépenses (BarChart) : comparaison mois par mois
+  • Répartition des recettes (Donut Chart) : cotisations, dons, remboursements
+  • Courbe de tendance du taux de recouvrement sur 12 mois glissants
+
+Principe UI : Chaque KPI est mis à jour sans rechargement de page via polling
+(30s) ou WebSocket.
+
+4.B Matrice de Pointage Mensuelle
+
+Outil de suivi principal des cotisations. Présente sous forme de grille
+interactive l'état de paiement de chaque membre pour chaque mois.
+
+Codes Couleur :
+  VERT   — Payé              (montant_paye >= montant_du)
+  JAUNE  — Partiel           (0 < montant_paye < montant_du)
+  ROUGE  — Impayé            (montant_paye = 0 et date passée)
+  GRIS   — À venir           (Mois futur)
+
+Interactions :
+  • Clic sur cellule rouge : ouverture formulaire paiement rapide (PaymentModal)
+  • Clic sur cellule jaune : affichage détail paiement partiel
+  • Filtre par année : rechargement via sp_get_monthly_pivot
+  • Export CSV : génération côté serveur
+
+4.C Gestion des Prêts
+
+Module complet du cycle de vie d'un prêt : demande, accord, tableau
+d'amortissement, suivi des remboursements, clôture.
+
+Vue Liste des Prêts :
+  • Carte par prêt : identifiant, membre, montant, taux, durée, mensualité
+  • Barre de progression : mensualités payées / total
+  • Badge statut : Actif (vert), En retard (rouge), Soldé (gris)
+
+Vue Détail d'un Prêt :
+  • Tableau d'amortissement complet (sp_generate_loan_schedule)
+  • Mise en évidence des échéances en retard
+  • Historique de tous les remboursements (dates + montants)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+5. SÉCURITÉ & INTÉGRITÉ DES DONNÉES
+
+5.1 Transactions SQL
+
+Toutes les procédures stockées impliquant des modifications financières
+utilisent systématiquement des transactions SQL explicites pour garantir
+l'atomicité des opérations.
+
+Exemple (sp_pay_contribution) :
+  START TRANSACTION
+    UPDATE contributions SET montant_paye = ?, statut = ? WHERE id = ?
+    UPDATE caisse SET solde = solde + ? WHERE exercice = ?
+    INSERT INTO audit_log (action, montant, user_id, created_at) VALUES (...)
+  COMMIT
+  -- ou ROLLBACK en cas d'erreur
+
+5.2 Contrôle d'Accès
+
+Couche de Responsabilité      Implémentation
+────────────────────────────────────────────────────────────────────────────
+Laravel Sanctum              Authentification par token (Bearer Token).
+                             Gestion des sessions et expiration automatique.
+                             Route::middleware(["auth:sanctum"]) sur tous
+                             les endpoints. Tokens révocables.
+
+MySQL Rôles                  Intégrité référentielle via clés étrangères,
+                             contraintes CHECK, unicité des données critiques.
+                             FOREIGN KEY avec ON DELETE RESTRICT pour
+                             protéger les données liées.
+
+Audit Log                    Traçabilité immuable de chaque mouvement
+                             financier et modification sensible.
+                             Table audit_log : INSERT ONLY
+                             Aucune UPDATE ou DELETE autorisée
+
+═══════════════════════════════════════════════════════════════════════════════
+
+6. LIVRABLES TECHNIQUES
+
+Le projet est découpé en 4 livrables indépendants et versionnés, chacun
+correspondant à une couche de l'architecture. Ils peuvent être développés en
+parallèle dès lors que les contrats d'interface sont établis.
+
+# Livrable   Contenu                           Critères de Validation
+─────────────────────────────────────────────────────────────────────────────
+L1 Script    Tables, index, contraintes,      Migration propre sur MySQL 8.0
+   SQL Root  vues. (01_schema.sql)            vierge. Toutes les FK résolues.
+
+L2 Script    Définition de toutes les         Tests unitaires sur données de
+   SQL Procs procédures stockées              démo. Résultats cohérents avec
+             (02_procedures.sql)              calculs manuels.
+
+L3 API       Contrôleurs légers, routes       Couverture de tests > 80%.
+   Laravel   API, middleware Sanctum,         Réponses JSON conformes au
+   11        tests PHPUnit.                   contrat d'interface.
+
+L4 App       Composants Tailwind modulaires,  Rendu correct Chrome/Firefox/
+   React     pages Dashboard/Matrice/         Safari. Responsive mobile &
+             Prêts/Membres.                  desktop.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CONCLUSION
+
+Ce document constitue la référence technique du projet Nafa.
+Toute modification de l'architecture ou des contrats d'interface doit faire
+l'objet d'une mise à jour de ce cahier des charges.
+
+Prochain livrable proposé : Génération du Script SQL Root (L1) incluant le
+schéma complet des tables et des procédures stockées, prêt à être exécuté
+sur un serveur MySQL 8.0.
+
+═══════════════════════════════════════════════════════════════════════════════

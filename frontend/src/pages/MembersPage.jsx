@@ -1,0 +1,302 @@
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import api from '../api/client'
+import Spinner from '../components/Spinner'
+import Modal from '../components/Modal'
+
+const STATUT_BADGE = {
+  actif:    'badge bg-green-100 text-green-700',
+  inactif:  'badge bg-gray-100 text-gray-500',
+  suspendu: 'badge bg-red-100 text-red-600',
+}
+
+function MemberForm({ initial = {}, roles, onSave, onClose }) {
+  const [form, setForm] = useState({
+    nom: '', prenom: '', alias: '', telephone: '', telephone2: '', email: '',
+    date_adhesion: '', role_id: roles[4]?.id ?? '', statut: 'actif',
+    lieu_habitation: '', emploi: '', commentaires: '', ...initial,
+  })
+  const [loading, setLoading] = useState(false)
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await onSave(form)
+      onClose()
+    } catch (err) {
+      const msg = err.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat().join(' ')
+        : err.response?.data?.message ?? 'Erreur.'
+      toast.error(msg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+
+      {/* Identité */}
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="label">Nom *</label>
+          <input className="input" value={form.nom} onChange={set('nom')} required />
+        </div>
+        <div>
+          <label className="label">Prénom *</label>
+          <input className="input" value={form.prenom} onChange={set('prenom')} required />
+        </div>
+        <div>
+          <label className="label">Alias / Surnom</label>
+          <input className="input" placeholder="ex : Petit Jean" value={form.alias ?? ''} onChange={set('alias')} />
+        </div>
+      </div>
+
+      {/* Contact */}
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="label">Téléphone *</label>
+          <input className="input" value={form.telephone} onChange={set('telephone')} required />
+        </div>
+        <div>
+          <label className="label">Téléphone 2 <span className="text-gray-400 font-normal text-xs">(opt.)</span></label>
+          <input className="input" value={form.telephone2 ?? ''} onChange={set('telephone2')} />
+        </div>
+        <div>
+          <label className="label">Email <span className="text-gray-400 font-normal text-xs">(opt.)</span></label>
+          <input type="email" className="input" value={form.email ?? ''} onChange={set('email')} />
+        </div>
+      </div>
+
+      {/* Profil */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="label">Lieu d'habitation</label>
+          <input className="input" value={form.lieu_habitation ?? ''} onChange={set('lieu_habitation')} />
+        </div>
+        <div>
+          <label className="label">Emploi / Profession</label>
+          <input className="input" value={form.emploi ?? ''} onChange={set('emploi')} />
+        </div>
+      </div>
+
+      {/* Admin */}
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="label">Date d'adhésion</label>
+          <input type="date" className="input" value={form.date_adhesion ?? ''} onChange={set('date_adhesion')} />
+        </div>
+        <div>
+          <label className="label">Rôle</label>
+          <select className="input" value={form.role_id} onChange={set('role_id')}>
+            {roles.map((r) => <option key={r.id} value={r.id}>{r.libelle}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="label">Statut</label>
+          <select className="input" value={form.statut} onChange={set('statut')}>
+            <option value="actif">Actif</option>
+            <option value="inactif">Inactif</option>
+            <option value="suspendu">Suspendu</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Commentaires */}
+      <div>
+        <label className="label">Commentaires</label>
+        <textarea className="input" rows={2} value={form.commentaires ?? ''} onChange={set('commentaires')} placeholder="Informations complémentaires…" />
+      </div>
+
+      <div className="flex gap-3 pt-1">
+        <button type="submit" className="btn-primary flex-1" disabled={loading}>
+          {loading ? 'Enregistrement…' : 'Sauvegarder'}
+        </button>
+        <button type="button" className="btn-secondary" onClick={onClose}>Annuler</button>
+      </div>
+    </form>
+  )
+}
+
+/* ── Card view for mobile ───────────────────────────────────── */
+function MemberCard({ m, onEdit }) {
+  const navigate = useNavigate()
+  return (
+    <div className="card flex items-start justify-between gap-3">
+      <div className="flex items-start gap-3 min-w-0">
+        <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm flex-shrink-0">
+          {m.nom[0]}{m.prenom[0]}
+        </div>
+        <div className="min-w-0">
+          <p className="font-semibold text-gray-900 text-sm truncate">{m.nom_complet}</p>
+          <p className="text-xs font-mono text-blue-600">{m.matricule}</p>
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-500">
+            <span>{m.telephone}</span>
+            {m.email && <span className="truncate">{m.email}</span>}
+          </div>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className={STATUT_BADGE[m.statut]}>{m.statut}</span>
+            <span className="text-xs text-gray-400">{m.role}</span>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1 flex-shrink-0">
+        <button
+          onClick={() => onEdit(m)}
+          className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+        >
+          Modifier
+        </button>
+        <button
+          onClick={() => navigate(`/membres/${m.id}/carte`)}
+          className="text-xs text-gray-500 hover:text-gray-700 font-medium px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+        >
+          Carte
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default function MembersPage() {
+  const navigate = useNavigate()
+  const [members, setMembers] = useState([])
+  const [roles,   setRoles]   = useState([])
+  const [search,  setSearch]  = useState('')
+  const [statut,  setStatut]  = useState('')
+  const [loading, setLoading] = useState(true)
+  const [modal,   setModal]   = useState(null)
+
+  const load = useCallback(() => {
+    setLoading(true)
+    const params = {}
+    if (search) params.search = search
+    if (statut) params.statut = statut
+    api.get('/members', { params })
+      .then((r) => setMembers(r.data))
+      .finally(() => setLoading(false))
+  }, [search, statut])
+
+  useEffect(() => { load() }, [load])
+  useEffect(() => { api.get('/roles-membres').then((r) => setRoles(r.data)) }, [])
+
+  const handleSave = async (form) => {
+    if (modal.mode === 'create') {
+      await api.post('/members', form)
+      toast.success('Membre créé avec succès')
+    } else {
+      await api.put(`/members/${modal.data.id}`, form)
+      toast.success('Membre mis à jour')
+    }
+    load()
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Membres</h2>
+        <button className="btn-primary" onClick={() => setModal({ mode: 'create' })}>
+          + Nouveau membre
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-[180px] max-w-xs">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            className="input pl-9"
+            placeholder="Rechercher…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <select className="input w-40" value={statut} onChange={(e) => setStatut(e.target.value)}>
+          <option value="">Tous statuts</option>
+          <option value="actif">Actif</option>
+          <option value="inactif">Inactif</option>
+          <option value="suspendu">Suspendu</option>
+        </select>
+      </div>
+
+      {loading ? <Spinner /> : (
+        <>
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  {['Matricule','Nom complet','Téléphone','Email','Rôle','Statut',''].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white">
+                {members.length === 0 ? (
+                  <tr><td colSpan={7} className="text-center py-12 text-gray-400">Aucun membre</td></tr>
+                ) : members.map((m) => (
+                  <tr key={m.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs text-blue-600 font-medium">{m.matricule}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{m.nom_complet}</td>
+                    <td className="px-4 py-3 text-gray-600">{m.telephone}</td>
+                    <td className="px-4 py-3 text-gray-600 max-w-[160px] truncate">{m.email ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{m.role}</td>
+                    <td className="px-4 py-3">
+                      <span className={STATUT_BADGE[m.statut]}>{m.statut}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setModal({ mode: 'edit', data: m })}
+                          className="text-blue-600 hover:text-blue-800 text-xs font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => navigate(`/membres/${m.id}/carte`)}
+                          className="text-gray-400 hover:text-gray-700 text-xs font-medium px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+                          title="Voir la carte"
+                        >
+                          🪪
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="sm:hidden space-y-3">
+            {members.length === 0 ? (
+              <div className="card text-center py-10 text-gray-400">Aucun membre</div>
+            ) : members.map((m) => (
+              <MemberCard key={m.id} m={m} onEdit={(data) => setModal({ mode: 'edit', data })} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {modal && (
+        <Modal
+          title={modal.mode === 'create' ? 'Nouveau membre' : 'Modifier le membre'}
+          onClose={() => setModal(null)}
+          size="lg"
+        >
+          <MemberForm
+            initial={modal.data}
+            roles={roles}
+            onSave={handleSave}
+            onClose={() => setModal(null)}
+          />
+        </Modal>
+      )}
+    </div>
+  )
+}

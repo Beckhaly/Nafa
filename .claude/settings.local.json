@@ -142,7 +142,9 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(curl -s -H \"Authorization: Bearer test\" http://localhost:8000/api/parametres)",
-      "Bash(curl -s http://localhost:8000/storage/logos/62WviSRlTFOSCtXRZUMoRaQYs6TK3rhDjCsV5gJ3.jpg)"
+      "Bash(curl -s http://localhost:8000/storage/logos/62WviSRlTFOSCtXRZUMoRaQYs6TK3rhDjCsV5gJ3.jpg)",
+      "Bash(git -C \"C:\\\\Projects\\\\Nafa\" add -A)",
+      "Bash(git -C 'C:\\\\Projects\\\\Nafa' commit -m ' *)"
     ]
   }
 }

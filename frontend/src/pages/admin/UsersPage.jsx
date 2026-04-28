@@ -3,7 +3,6 @@ import { toast } from 'sonner'
 import api from '../../api/client'
 import Spinner from '../../components/Spinner'
 import Modal from '../../components/Modal'
-import StatusBadge from '../../components/StatusBadge'
 
 export default function UsersPage() {
   const [users,   setUsers]   = useState([])

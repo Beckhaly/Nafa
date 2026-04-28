@@ -25,6 +25,7 @@ export default function EventsPage() {
   const [search,  setSearch]  = useState('')
   const statusLabels = useStatusLabels()
   const eventStatusMap = statusLabels['statuts-events'] || {}
+  const getStatusData = (key) => eventStatusMap[key?.toLowerCase()] || null
 
   const filteredEvents = events.filter((ev) =>
     ev.titre?.toLowerCase().includes(search.toLowerCase()) ||
@@ -85,7 +86,7 @@ export default function EventsPage() {
                   <p className="text-xs text-blue-600 mt-0.5">{ev.type}</p>
                 </div>
                 <div className="flex-shrink-0">
-                  <StatusBadge statut={ev.statut} statusData={eventStatusMap[ev.statut]} size="sm" />
+                  <StatusBadge statut={ev.statut} statusData={getStatusData(ev.statut)} size="sm" />
                 </div>
               </div>
               <div className="mt-3 text-sm text-gray-500 space-y-1">

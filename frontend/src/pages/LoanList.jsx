@@ -92,6 +92,7 @@ export default function LoanList() {
   const navigate = useNavigate()
   const statusLabels = useStatusLabels()
   const loanStatusMap = statusLabels['statuts-loans'] || {}
+  const getStatusData = (key) => loanStatusMap[key?.toLowerCase()] || null
 
   const filteredLoans = loans.filter((loan) =>
     loan.nom_complet?.toLowerCase().includes(search.toLowerCase()) ||
@@ -160,7 +161,7 @@ export default function LoanList() {
                     </p>
                     <p className="text-xs text-gray-400 font-mono">{loan.matricule}</p>
                   </div>
-                  <StatusBadge statut={loan.statut} statusData={loanStatusMap[loan.statut]} size="sm" />
+                  <StatusBadge statut={loan.statut} statusData={getStatusData(loan.statut)} size="sm" />
                 </div>
 
                 <div className="mt-4 grid grid-cols-3 gap-3 sm:gap-4 text-sm">

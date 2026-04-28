@@ -121,6 +121,7 @@ function MemberForm({ initial = {}, roles, onSave, onClose }) {
 function MemberCard({ m, onEdit, statusLabels }) {
   const navigate = useNavigate()
   const statutMap = statusLabels['statuts-membres'] || {}
+  const getStatusData = (key) => statutMap[key?.toLowerCase()] || null
   return (
     <div className="card flex items-start justify-between gap-3">
       <div className="flex items-start gap-3 min-w-0">
@@ -135,7 +136,7 @@ function MemberCard({ m, onEdit, statusLabels }) {
             {m.email && <span className="truncate">{m.email}</span>}
           </div>
           <div className="flex items-center gap-2 mt-1.5">
-            <StatusBadge statut={m.statut} statusData={statutMap[m.statut]} size="sm" />
+            <StatusBadge statut={m.statut} statusData={getStatusData(m.statut)} size="sm" />
             <span className="text-xs text-gray-400">{m.role}</span>
           </div>
         </div>
@@ -168,6 +169,7 @@ export default function MembersPage() {
   const [loading, setLoading] = useState(true)
   const [modal,   setModal]   = useState(null)
   const statutMap = statusLabels['statuts-membres'] || {}
+  const getStatusData = (key) => statutMap[key?.toLowerCase()] || null
 
   const load = useCallback(() => {
     setLoading(true)
@@ -246,7 +248,7 @@ export default function MembersPage() {
                     <td className="px-4 py-3 text-gray-600 max-w-[160px] truncate">{m.email ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-600">{m.role}</td>
                     <td className="px-4 py-3">
-                      <StatusBadge statut={m.statut} statusData={statutMap[m.statut]} size="sm" />
+                      <StatusBadge statut={m.statut} statusData={getStatusData(m.statut)} size="sm" />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">

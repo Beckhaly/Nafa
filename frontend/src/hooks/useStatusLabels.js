@@ -28,9 +28,14 @@ export function useStatusLabels() {
       const combined = {}
       refs.forEach((ref, idx) => {
         if (results[idx]?.data) {
-          combined[ref] = Object.fromEntries(
+          const byId = Object.fromEntries(
             results[idx].data.map((row) => [row.id, row])
           )
+          // Also create mapping by lowercase libelle for enum-based lookups
+          const byLibelle = Object.fromEntries(
+            results[idx].data.map((row) => [row.libelle.toLowerCase(), row])
+          )
+          combined[ref] = { ...byId, ...byLibelle }
         }
       })
       setLabels(combined)

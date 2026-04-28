@@ -5,15 +5,10 @@ import 'dayjs/locale/fr'
 import api from '../api/client'
 import Spinner from '../components/Spinner'
 import Modal from '../components/Modal'
+import StatusBadge from '../components/StatusBadge'
+import { useStatusLabels } from '../hooks/useStatusLabels'
 
 dayjs.locale('fr')
-
-const STATUT_BADGE = {
-  planifie: 'badge bg-blue-100 text-blue-700',
-  en_cours: 'badge bg-yellow-100 text-yellow-700',
-  termine:  'badge bg-green-100 text-green-700',
-  annule:   'badge bg-gray-100 text-gray-500',
-}
 
 const STATUT_PARTICIPANT = {
   present: 'badge bg-green-100 text-green-700',
@@ -28,6 +23,8 @@ export default function EventsPage() {
   const [modal,   setModal]   = useState(null)
   const [detail,  setDetail]  = useState(null)
   const [search,  setSearch]  = useState('')
+  const statusLabels = useStatusLabels()
+  const eventStatusMap = statusLabels['statuts-events'] || {}
 
   const filteredEvents = events.filter((ev) =>
     ev.titre?.toLowerCase().includes(search.toLowerCase()) ||
@@ -87,9 +84,9 @@ export default function EventsPage() {
                   </p>
                   <p className="text-xs text-blue-600 mt-0.5">{ev.type}</p>
                 </div>
-                <span className={`${STATUT_BADGE[ev.statut] ?? STATUT_BADGE.planifie} flex-shrink-0`}>
-                  {ev.statut}
-                </span>
+                <div className="flex-shrink-0">
+                  <StatusBadge statut={ev.statut} statusData={eventStatusMap[ev.statut]} size="sm" />
+                </div>
               </div>
               <div className="mt-3 text-sm text-gray-500 space-y-1">
                 <p className="flex items-center gap-1.5">
@@ -126,7 +123,7 @@ export default function EventsPage() {
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-xs text-gray-400 mb-0.5">Statut</p>
-                <span className={STATUT_BADGE[detail.statut] ?? STATUT_BADGE.planifie}>{detail.statut}</span>
+                <StatusBadge statut={detail.statut} statusData={eventStatusMap[detail.statut]} size="sm" />
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-xs text-gray-400 mb-0.5">Début</p>

@@ -4,12 +4,8 @@ import { toast } from 'sonner'
 import api from '../api/client'
 import Spinner from '../components/Spinner'
 import Modal from '../components/Modal'
-
-const STATUS_BADGE = {
-  actif:     'badge bg-green-100 text-green-700',
-  en_retard: 'badge bg-red-100 text-red-600',
-  solde:     'badge bg-gray-100 text-gray-500',
-}
+import StatusBadge from '../components/StatusBadge'
+import { useStatusLabels } from '../hooks/useStatusLabels'
 
 function LoanForm({ members, onSave, onClose }) {
   const [form, setForm] = useState({
@@ -94,6 +90,8 @@ export default function LoanList() {
   const [loading, setLoading] = useState(true)
   const [modal,   setModal]   = useState(false)
   const navigate = useNavigate()
+  const statusLabels = useStatusLabels()
+  const loanStatusMap = statusLabels['statuts-loans'] || {}
 
   const filteredLoans = loans.filter((loan) =>
     loan.nom_complet?.toLowerCase().includes(search.toLowerCase()) ||
@@ -162,9 +160,7 @@ export default function LoanList() {
                     </p>
                     <p className="text-xs text-gray-400 font-mono">{loan.matricule}</p>
                   </div>
-                  <span className={STATUS_BADGE[loan.statut] ?? STATUS_BADGE.actif}>
-                    {loan.statut.replace('_', ' ')}
-                  </span>
+                  <StatusBadge statut={loan.statut} statusData={loanStatusMap[loan.statut]} size="sm" />
                 </div>
 
                 <div className="mt-4 grid grid-cols-3 gap-3 sm:gap-4 text-sm">

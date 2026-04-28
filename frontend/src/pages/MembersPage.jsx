@@ -4,12 +4,8 @@ import { toast } from 'sonner'
 import api from '../api/client'
 import Spinner from '../components/Spinner'
 import Modal from '../components/Modal'
-
-const STATUT_BADGE = {
-  actif:    'badge bg-green-100 text-green-700',
-  inactif:  'badge bg-gray-100 text-gray-500',
-  suspendu: 'badge bg-red-100 text-red-600',
-}
+import StatusBadge from '../components/StatusBadge'
+import { useStatusLabels } from '../hooks/useStatusLabels'
 
 function MemberForm({ initial = {}, roles, onSave, onClose }) {
   const [form, setForm] = useState({
@@ -122,8 +118,9 @@ function MemberForm({ initial = {}, roles, onSave, onClose }) {
 }
 
 /* ── Card view for mobile ───────────────────────────────────── */
-function MemberCard({ m, onEdit }) {
+function MemberCard({ m, onEdit, statusLabels }) {
   const navigate = useNavigate()
+  const statutMap = statusLabels['statuts-membres'] || {}
   return (
     <div className="card flex items-start justify-between gap-3">
       <div className="flex items-start gap-3 min-w-0">
@@ -138,7 +135,7 @@ function MemberCard({ m, onEdit }) {
             {m.email && <span className="truncate">{m.email}</span>}
           </div>
           <div className="flex items-center gap-2 mt-1.5">
-            <span className={STATUT_BADGE[m.statut]}>{m.statut}</span>
+            <StatusBadge statut={m.statut} statusData={statutMap[m.statut]} size="sm" />
             <span className="text-xs text-gray-400">{m.role}</span>
           </div>
         </div>
@@ -163,12 +160,14 @@ function MemberCard({ m, onEdit }) {
 
 export default function MembersPage() {
   const navigate = useNavigate()
+  const statusLabels = useStatusLabels()
   const [members, setMembers] = useState([])
   const [roles,   setRoles]   = useState([])
   const [search,  setSearch]  = useState('')
   const [statut,  setStatut]  = useState('')
   const [loading, setLoading] = useState(true)
   const [modal,   setModal]   = useState(null)
+  const statutMap = statusLabels['statuts-membres'] || {}
 
   const load = useCallback(() => {
     setLoading(true)
@@ -247,7 +246,7 @@ export default function MembersPage() {
                     <td className="px-4 py-3 text-gray-600 max-w-[160px] truncate">{m.email ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-600">{m.role}</td>
                     <td className="px-4 py-3">
-                      <span className={STATUT_BADGE[m.statut]}>{m.statut}</span>
+                      <StatusBadge statut={m.statut} statusData={statutMap[m.statut]} size="sm" />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
@@ -277,7 +276,7 @@ export default function MembersPage() {
             {members.length === 0 ? (
               <div className="card text-center py-10 text-gray-400">Aucun membre</div>
             ) : members.map((m) => (
-              <MemberCard key={m.id} m={m} onEdit={(data) => setModal({ mode: 'edit', data })} />
+              <MemberCard key={m.id} m={m} onEdit={(data) => setModal({ mode: 'edit', data })} statusLabels={statusLabels} />
             ))}
           </div>
         </>

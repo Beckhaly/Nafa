@@ -13,6 +13,9 @@ function MemberForm({ initial = {}, roles, onSave, onClose }) {
     date_adhesion: '', role_id: roles[4]?.id ?? '', statut: 'actif',
     lieu_habitation: '', emploi: '', commentaires: '', ...initial,
   })
+  const [createUser, setCreateUser] = useState(false)
+  const [userPassword, setUserPassword] = useState('')
+  const [userRole, setUserRole] = useState('')
   const [loading, setLoading] = useState(false)
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
@@ -20,11 +23,32 @@ function MemberForm({ initial = {}, roles, onSave, onClose }) {
     e.preventDefault()
     setLoading(true)
     try {
-      await onSave(form)
+      // Validation pour création d'utilisateur
+      if (createUser) {
+        if (!userPassword || userPassword.length < 8) {
+          toast.error('Le mot de passe doit contenir au moins 8 caractères')
+          setLoading(false)
+          return
+        }
+        if (!userRole) {
+          toast.error('Sélectionner un rôle pour l\'utilisateur')
+          setLoading(false)
+          return
+        }
+      }
+
+      // Appeler onSave qui gère la sauvegarde du membre
+      await onSave({
+        ...form,
+        createUser: createUser ? {
+          password: userPassword,
+          role_id: parseInt(userRole),
+        } : null,
+      })
       onClose()
     } catch (err) {
       const msg = err.response?.data?.errors
-        ? Object.values(err.response.data.errors).flat().join(' ')
+        ? Object.values(err.response.data.errors).flat().join(' · ')
         : err.response?.data?.message ?? 'Erreur.'
       toast.error(msg)
     } finally {
@@ -107,6 +131,59 @@ function MemberForm({ initial = {}, roles, onSave, onClose }) {
         <textarea className="input" rows={2} value={form.commentaires ?? ''} onChange={set('commentaires')} placeholder="Informations complémentaires…" />
       </div>
 
+      {/* Créer un compte utilisateur */}
+      {!initial.id && (
+        <>
+          <div className="border-t border-gray-200 pt-3 mt-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={createUser}
+                onChange={(e) => setCreateUser(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-blue-600"
+              />
+              <span className="text-sm font-medium text-gray-700">Créer un compte utilisateur pour accéder à l'application</span>
+            </label>
+          </div>
+
+          {createUser && (
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-3">
+              <div>
+                <label className="label">Mot de passe *</label>
+                <input
+                  type="password"
+                  className="input"
+                  value={userPassword}
+                  onChange={(e) => setUserPassword(e.target.value)}
+                  placeholder="Min. 8 caractères"
+                  minLength={8}
+                  required={createUser}
+                />
+                <p className="text-xs text-gray-500 mt-1">Minimum 8 caractères</p>
+              </div>
+
+              <div>
+                <label className="label">Rôle utilisateur *</label>
+                <select
+                  className="input"
+                  value={userRole}
+                  onChange={(e) => setUserRole(e.target.value)}
+                  required={createUser}
+                >
+                  <option value="">Sélectionner un rôle…</option>
+                  <option value="4">Lecteur (consultation seulement)</option>
+                  <option value="5">Membre (accès complet)</option>
+                </select>
+              </div>
+
+              <p className="text-xs text-gray-500 bg-white p-2 rounded border border-gray-200">
+                📧 Email pour connexion: <strong>{form.email || `${form.nom.toLowerCase()}.${form.prenom.toLowerCase()}@nafa.local`}</strong>
+              </p>
+            </div>
+          )}
+        </>
+      )}
+
       <div className="flex gap-3 pt-1">
         <button type="submit" className="btn-primary flex-1" disabled={loading}>
           {loading ? 'Enregistrement…' : 'Sauvegarder'}
@@ -184,10 +261,33 @@ export default function MembersPage() {
   useEffect(() => { load() }, [load])
   useEffect(() => { api.get('/roles-membres').then((r) => setRoles(r.data)) }, [])
 
-  const handleSave = async (form) => {
+  const handleSave = async (formData) => {
+    const { createUser, ...form } = formData
+
     if (modal.mode === 'create') {
-      await api.post('/members', form)
-      toast.success('Membre créé avec succès')
+      // Créer le membre
+      const memberRes = await api.post('/members', form)
+      const memberId = memberRes.data.id
+
+      // Créer l'utilisateur si demandé
+      if (createUser) {
+        try {
+          await api.post('/admin/users', {
+            name: `${form.prenom} ${form.nom}`,
+            email: form.email || `${form.nom.toLowerCase()}.${form.prenom.toLowerCase()}@nafa.local`,
+            password: createUser.password,
+            role_id: createUser.role_id,
+            is_active: 1,
+          })
+          toast.success('Membre et utilisateur créés avec succès')
+        } catch (err) {
+          // Le membre a été créé mais pas l'utilisateur
+          toast.warning('Membre créé mais la création de l\'utilisateur a échoué')
+          console.error('Erreur création utilisateur:', err)
+        }
+      } else {
+        toast.success('Membre créé avec succès')
+      }
     } else {
       await api.put(`/members/${modal.data.id}`, form)
       toast.success('Membre mis à jour')

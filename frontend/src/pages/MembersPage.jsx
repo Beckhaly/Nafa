@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import api from '../api/client'
@@ -6,6 +6,15 @@ import Spinner from '../components/Spinner'
 import Modal from '../components/Modal'
 import StatusBadge from '../components/StatusBadge'
 import { useStatusLabels } from '../hooks/useStatusLabels'
+
+const MEMBER_ROLE_TO_USER_ROLES = {
+  1: [1, 2, 3, 4, 5],     // Président → admin, tresorier, secretaire, lecteur, membre
+  2: [1, 2, 3, 4, 5],     // Vice-Président → admin, tresorier, secretaire, lecteur, membre
+  3: [2, 3, 4, 5],        // Trésorier → tresorier, secretaire, lecteur, membre
+  4: [3, 4, 5],           // Secrétaire → secretaire, lecteur, membre
+  5: [4, 5],              // Membre → lecteur, membre
+  6: [4, 5],              // Auditeur → lecteur, membre
+}
 
 function MemberForm({ initial = {}, roles, onSave, onClose }) {
   const [form, setForm] = useState({
@@ -18,6 +27,17 @@ function MemberForm({ initial = {}, roles, onSave, onClose }) {
   const [userRole, setUserRole] = useState('')
   const [loading, setLoading] = useState(false)
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
+
+  const availableUserRoles = useMemo(() => {
+    const allowedIds = MEMBER_ROLE_TO_USER_ROLES[form.role_id] || []
+    return [
+      { id: 1, libelle: 'Administrateur' },
+      { id: 2, libelle: 'Trésorier' },
+      { id: 3, libelle: 'Secrétaire' },
+      { id: 4, libelle: 'Lecteur' },
+      { id: 5, libelle: 'Membre' },
+    ].filter(r => allowedIds.includes(r.id))
+  }, [form.role_id])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -132,56 +152,56 @@ function MemberForm({ initial = {}, roles, onSave, onClose }) {
       </div>
 
       {/* Créer un compte utilisateur */}
-      {!initial.id && (
-        <>
-          <div className="border-t border-gray-200 pt-3 mt-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={createUser}
-                onChange={(e) => setCreateUser(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600"
-              />
-              <span className="text-sm font-medium text-gray-700">Créer un compte utilisateur pour accéder à l'application</span>
-            </label>
+      <div className="border-t border-gray-200 pt-3 mt-3">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={createUser}
+            onChange={(e) => setCreateUser(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600"
+          />
+          <span className="text-sm font-medium text-gray-700">
+            {initial.id ? 'Créer un compte utilisateur' : 'Créer un compte utilisateur pour accéder à l\'application'}
+          </span>
+        </label>
+      </div>
+
+      {createUser && (
+        <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-3">
+          <div>
+            <label className="label">Mot de passe *</label>
+            <input
+              type="password"
+              className="input"
+              value={userPassword}
+              onChange={(e) => setUserPassword(e.target.value)}
+              placeholder="Min. 8 caractères"
+              minLength={8}
+              required={createUser}
+            />
+            <p className="text-xs text-gray-500 mt-1">Minimum 8 caractères</p>
           </div>
 
-          {createUser && (
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-3">
-              <div>
-                <label className="label">Mot de passe *</label>
-                <input
-                  type="password"
-                  className="input"
-                  value={userPassword}
-                  onChange={(e) => setUserPassword(e.target.value)}
-                  placeholder="Min. 8 caractères"
-                  minLength={8}
-                  required={createUser}
-                />
-                <p className="text-xs text-gray-500 mt-1">Minimum 8 caractères</p>
-              </div>
+          <div>
+            <label className="label">Rôle utilisateur *</label>
+            <select
+              className="input"
+              value={userRole}
+              onChange={(e) => setUserRole(e.target.value)}
+              required={createUser}
+            >
+              <option value="">Sélectionner un rôle…</option>
+              {availableUserRoles.map((r) => (
+                <option key={r.id} value={r.id}>{r.libelle}</option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">Rôles disponibles selon le poste du membre</p>
+          </div>
 
-              <div>
-                <label className="label">Rôle utilisateur *</label>
-                <select
-                  className="input"
-                  value={userRole}
-                  onChange={(e) => setUserRole(e.target.value)}
-                  required={createUser}
-                >
-                  <option value="">Sélectionner un rôle…</option>
-                  <option value="4">Lecteur (consultation seulement)</option>
-                  <option value="5">Membre (accès complet)</option>
-                </select>
-              </div>
-
-              <p className="text-xs text-gray-500 bg-white p-2 rounded border border-gray-200">
-                📧 Email pour connexion: <strong>{form.email || `${form.nom.toLowerCase()}.${form.prenom.toLowerCase()}@nafa.local`}</strong>
-              </p>
-            </div>
-          )}
-        </>
+          <p className="text-xs text-gray-500 bg-white p-2 rounded border border-gray-200">
+            📱 Login pour connexion: <strong>{form.telephone}</strong>
+          </p>
+        </div>
       )}
 
       <div className="flex gap-3 pt-1">
@@ -274,7 +294,7 @@ export default function MembersPage() {
         try {
           await api.post('/admin/users', {
             name: `${form.prenom} ${form.nom}`,
-            email: form.email || `${form.nom.toLowerCase()}.${form.prenom.toLowerCase()}@nafa.local`,
+            email: form.telephone,
             password: createUser.password,
             role_id: createUser.role_id,
             is_active: 1,

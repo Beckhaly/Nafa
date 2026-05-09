@@ -268,4 +268,102 @@ class AdminController extends Controller
             return response()->json(['message' => 'Impossible de supprimer cet utilisateur.'], 422);
         }
     }
+
+    // =========================================================================
+    // Statistiques d'utilisation des références
+    // =========================================================================
+
+    public function getUsageStats(string $ref)
+    {
+        $stats = [];
+
+        try {
+            switch ($ref) {
+                case 'statuts-membres':
+                    // Count members by status (ENUM values: 'actif', 'inactif', 'suspendu')
+                    $results = DB::select("SELECT statut, COUNT(*) as count FROM members GROUP BY statut");
+                    foreach ($results as $row) {
+                        $libelle = ucfirst($row->statut);
+                        $id = DB::table('statuts_membres')->where('libelle', $libelle)->value('id');
+                        if ($id) $stats[$id] = $row->count;
+                    }
+                    break;
+
+                case 'statuts-contributions':
+                    // Count contributions by status (ENUM values: 'paid', 'partial', 'unpaid')
+                    $results = DB::select("SELECT statut, COUNT(*) as count FROM contributions GROUP BY statut");
+                    foreach ($results as $row) {
+                        $mapping = ['paid' => 'Payée', 'partial' => 'Partielle', 'unpaid' => 'Impayée'];
+                        $libelle = $mapping[$row->statut] ?? ucfirst($row->statut);
+                        $id = DB::table('statuts_contributions')->where('libelle', $libelle)->value('id');
+                        if ($id) $stats[$id] = $row->count;
+                    }
+                    break;
+
+                case 'statuts-cotisations-exceptionnelles':
+                    $results = DB::select("SELECT statut, COUNT(*) as count FROM cotisations_exceptionnelles GROUP BY statut");
+                    foreach ($results as $row) {
+                        $mapping = ['paid' => 'Payée', 'partial' => 'Partielle', 'unpaid' => 'Impayée'];
+                        $libelle = $mapping[$row->statut] ?? ucfirst($row->statut);
+                        $id = DB::table('statuts_cotisations_exceptionnelles')->where('libelle', $libelle)->value('id');
+                        if ($id) $stats[$id] = $row->count;
+                    }
+                    break;
+
+                case 'statuts-loans':
+                    $results = DB::select("SELECT statut, COUNT(*) as count FROM loans GROUP BY statut");
+                    foreach ($results as $row) {
+                        $mapping = ['actif' => 'Actif', 'en_retard' => 'En retard', 'solde' => 'Soldé'];
+                        $libelle = $mapping[$row->statut] ?? ucfirst($row->statut);
+                        $id = DB::table('statuts_loans')->where('libelle', $libelle)->value('id');
+                        if ($id) $stats[$id] = $row->count;
+                    }
+                    break;
+
+                case 'statuts-events':
+                    $results = DB::select("SELECT statut, COUNT(*) as count FROM events GROUP BY statut");
+                    foreach ($results as $row) {
+                        $mapping = ['planifie' => 'Planifié', 'en_cours' => 'En cours', 'termine' => 'Terminé', 'annule' => 'Annulé'];
+                        $libelle = $mapping[$row->statut] ?? ucfirst($row->statut);
+                        $id = DB::table('statuts_events')->where('libelle', $libelle)->value('id');
+                        if ($id) $stats[$id] = $row->count;
+                    }
+                    break;
+
+                case 'statuts-participants':
+                    $results = DB::select("SELECT statut, COUNT(*) as count FROM event_participants GROUP BY statut");
+                    foreach ($results as $row) {
+                        $mapping = ['inscrit' => 'Inscrit', 'present' => 'Présent', 'absent' => 'Absent'];
+                        $libelle = $mapping[$row->statut] ?? ucfirst($row->statut);
+                        $id = DB::table('statuts_participants')->where('libelle', $libelle)->value('id');
+                        if ($id) $stats[$id] = $row->count;
+                    }
+                    break;
+
+                case 'canaux-diffusion':
+                    $results = DB::select("SELECT canal, COUNT(*) as count FROM diffusions GROUP BY canal");
+                    foreach ($results as $row) {
+                        $mapping = ['sms' => 'SMS', 'whatsapp' => 'WhatsApp'];
+                        $libelle = $mapping[$row->canal] ?? ucfirst($row->canal);
+                        $id = DB::table('canaux_diffusion')->where('libelle', $libelle)->value('id');
+                        if ($id) $stats[$id] = $row->count;
+                    }
+                    break;
+
+                case 'statuts-diffusions':
+                    $results = DB::select("SELECT statut, COUNT(*) as count FROM diffusions GROUP BY statut");
+                    foreach ($results as $row) {
+                        $mapping = ['pending' => 'En attente', 'envoye' => 'Envoyé', 'echec' => 'Échec'];
+                        $libelle = $mapping[$row->statut] ?? ucfirst($row->statut);
+                        $id = DB::table('statuts_diffusions')->where('libelle', $libelle)->value('id');
+                        if ($id) $stats[$id] = $row->count;
+                    }
+                    break;
+            }
+        } catch (\Throwable $e) {
+            // Silently fail if tables don't exist yet
+        }
+
+        return response()->json($stats);
+    }
 }

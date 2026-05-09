@@ -61,7 +61,7 @@ export default function MemberLayout() {
             ))}
           </nav>
 
-          {/* User + logout */}
+          {/* User + actions */}
           <div className="ml-auto flex items-center gap-3 flex-shrink-0">
             <div className="hidden sm:flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold uppercase">
@@ -69,6 +69,14 @@ export default function MemberLayout() {
               </div>
               <span className="text-sm text-blue-100 hidden lg:block">{user?.name}</span>
             </div>
+            {user?.role !== 'membre' && (
+              <button
+                onClick={() => navigate('/')}
+                className="text-xs text-blue-200 hover:text-white border border-blue-500 hover:border-blue-300 px-2.5 py-1 rounded-lg transition-colors"
+              >
+                Portail Admin
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="text-xs text-blue-200 hover:text-white border border-blue-500 hover:border-blue-300 px-2.5 py-1 rounded-lg transition-colors"

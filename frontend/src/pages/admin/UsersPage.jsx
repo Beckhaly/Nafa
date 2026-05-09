@@ -5,12 +5,13 @@ import Spinner from '../../components/Spinner'
 import Modal from '../../components/Modal'
 
 export default function UsersPage() {
-  const [users,   setUsers]   = useState([])
-  const [roles,   setRoles]   = useState([])
-  const [loading, setLoading] = useState(true)
-  const [modal,   setModal]   = useState(null)  // null | 'create' | { mode:'edit', user } | { mode:'delete', user }
-  const [search,  setSearch]  = useState('')
+  const [users,      setUsers]      = useState([])
+  const [roles,      setRoles]      = useState([])
+  const [loading,    setLoading]    = useState(true)
+  const [modal,      setModal]      = useState(null)  // null | 'create' | { mode:'edit', user } | { mode:'delete', user }
+  const [search,     setSearch]     = useState('')
   const [roleFilter, setRoleFilter] = useState('')
+  const [deleting,   setDeleting]   = useState(null)
 
   const load = useCallback(() => {
     setLoading(true)

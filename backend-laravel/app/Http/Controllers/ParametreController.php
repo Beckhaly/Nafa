@@ -28,7 +28,7 @@ class ParametreController extends Controller
             'adresse'                      => 'nullable|string|max:500',
             'telephone'                    => 'nullable|string|max:30',
             'email_contact'                => 'nullable|email|max:150',
-            'site_web'                     => 'nullable|url|max:255',
+            'site_web'                     => 'nullable|string|max:255',
             'whatsapp_groupe'              => 'nullable|string|max:255',
             'date_creation'                => 'nullable|date',
             'numero_enregistrement'        => 'nullable|string|max:100',
@@ -41,6 +41,9 @@ class ParametreController extends Controller
             'logo_url'                     => 'nullable|string|max:255',
             'reglement_interieur'          => 'nullable|string',
             'reglement_url'                => 'nullable|string|max:255',
+            'enable_sms'                   => 'nullable|boolean',
+            'enable_whatsapp'              => 'nullable|boolean',
+            'enable_whatsapp_share'        => 'nullable|boolean',
         ]);
 
         DB::table('parametres')->updateOrInsert(['id' => 1], $data);

@@ -179,11 +179,18 @@ function RefTable({ config }) {
   const [search,     setSearch]     = useState('')
   const [sortCol,    setSortCol]    = useState(null)
   const [sortDir,    setSortDir]    = useState('asc')
+  const [stats,      setStats]      = useState({})
 
   const load = () => {
     setLoading(true)
-    api.get(`/admin/reference/${config.key}`)
-      .then((r) => setRows(r.data))
+    Promise.all([
+      api.get(`/admin/reference/${config.key}`),
+      api.get(`/admin/reference/${config.key}/stats`)
+    ])
+      .then(([rowRes, statsRes]) => {
+        setRows(rowRes.data)
+        setStats(statsRes.data || {})
+      })
       .finally(() => setLoading(false))
   }
 
@@ -270,49 +277,62 @@ function RefTable({ config }) {
                           </div>
                         </th>
                       ))}
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Utilisation</th>
                       <th className="px-4 py-3 w-24" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {sortedRows.map((row) => (
-                      <tr key={row.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-gray-400 text-xs font-mono">{row.id}</td>
-                        {cols.map((c) => (
-                          <td key={c.name} className="px-4 py-3 text-gray-700">
-                            {c.type === 'color' && row[c.name]
-                              ? <span className="flex items-center gap-2">
-                                  <span
-                                    className="inline-block w-4 h-4 rounded border border-gray-200 flex-shrink-0"
-                                    style={{ backgroundColor: row[c.name] }}
-                                    title={row[c.name]}
-                                  />
-                                  <code className="text-xs">{row[c.name]}</code>
+                    {sortedRows.map((row) => {
+                      const count = stats[row.id] || 0
+                      return (
+                        <tr key={row.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-gray-400 text-xs font-mono">{row.id}</td>
+                          {cols.map((c) => (
+                            <td key={c.name} className="px-4 py-3 text-gray-700">
+                              {c.type === 'color' && row[c.name]
+                                ? <span className="flex items-center gap-2">
+                                    <span
+                                      className="inline-block w-4 h-4 rounded border border-gray-200 flex-shrink-0"
+                                      style={{ backgroundColor: row[c.name] }}
+                                      title={row[c.name]}
+                                    />
+                                    <code className="text-xs">{row[c.name]}</code>
+                                  </span>
+                                : c.name === 'icone' && row[c.name]
+                                ? <span className="text-lg">{row[c.name]}</span>
+                                : (row[c.name] ?? <span className="text-gray-300">—</span>)
+                              }
+                            </td>
+                          ))}
+                          <td className="px-4 py-3">
+                            {count > 0
+                              ? <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                  {count === 1 ? 'Utilisé 1 fois' : `Utilisé ${count} fois`}
                                 </span>
-                              : c.name === 'icone' && row[c.name]
-                              ? <span className="text-lg">{row[c.name]}</span>
-                              : (row[c.name] ?? <span className="text-gray-300">—</span>)
+                              : <span className="text-xs text-gray-400">Non utilisé</span>
                             }
                           </td>
-                        ))}
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2 justify-end">
-                            <button
-                              onClick={() => setModal({ mode: 'edit', row })}
-                              className="text-xs text-blue-600 hover:underline"
-                            >
-                              Modifier
-                            </button>
-                            <button
-                              onClick={() => handleDelete(row)}
-                              disabled={deleting === row.id}
-                              className="text-xs text-red-500 hover:underline disabled:opacity-40"
-                            >
-                              {deleting === row.id ? '…' : 'Supprimer'}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2 justify-end">
+                              <button
+                                onClick={() => setModal({ mode: 'edit', row })}
+                                className="text-xs text-blue-600 hover:underline"
+                              >
+                                Modifier
+                              </button>
+                              <button
+                                onClick={() => handleDelete(row)}
+                                disabled={deleting === row.id || count > 0}
+                                title={count > 0 ? 'Impossible de supprimer une valeur utilisée' : ''}
+                                className="text-xs text-red-500 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+                              >
+                                {deleting === row.id ? '…' : 'Supprimer'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>

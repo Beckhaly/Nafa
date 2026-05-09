@@ -30,6 +30,12 @@ return [
         'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
     ],
 
+    'smspro' => [
+        'api_key'  => env('SMSPRO_API_KEY'),
+        'endpoint' => env('SMSPRO_ENDPOINT', 'https://api.smspro.africa/send'),
+        'sender_id' => env('SMSPRO_SENDER_ID', 'NAFA'),
+    ],
+
     'whatsapp' => [
         'provider'        => env('WHATSAPP_PROVIDER', 'twilio'),
         'meta_token'      => env('WHATSAPP_META_TOKEN'),

@@ -2,14 +2,18 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import api from '../api/client'
+import { useSettings } from '../context/SettingsContext'
 import Spinner from '../components/Spinner'
 import Modal from '../components/Modal'
 import StatusBadge from '../components/StatusBadge'
 import { useStatusLabels } from '../hooks/useStatusLabels'
 
 function LoanForm({ members, onSave, onClose }) {
+  const { settings } = useSettings()
+  const defaultTauxInteret = Number(settings?.taux_interet_pret ?? 10)
+  const plafondPret = Number(settings?.plafond_pret ?? 0)
   const [form, setForm] = useState({
-    member_id: '', montant: '', taux_interet: 10, duree_mois: 12, date_debut: '',
+    member_id: '', montant: '', taux_interet: defaultTauxInteret, duree_mois: 12, date_debut: '',
   })
   const [loading, setLoading] = useState(false)
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
@@ -27,6 +31,12 @@ function LoanForm({ members, onSave, onClose }) {
     e.preventDefault()
     setLoading(true)
     try {
+      const montant = parseFloat(form.montant)
+      if (plafondPret > 0 && montant > plafondPret) {
+        toast.error(`Le montant ne peut pas dépasser le plafond de ${Number(plafondPret).toLocaleString('fr-FR')} FCFA`)
+        setLoading(false)
+        return
+      }
       await onSave(form)
       onClose()
     } catch (err) {
@@ -49,10 +59,14 @@ function LoanForm({ members, onSave, onClose }) {
         <div>
           <label className="label">Montant (FCFA) *</label>
           <input type="number" className="input" value={form.montant} onChange={set('montant')} required min="1" />
+          {plafondPret > 0 && (
+            <p className="text-xs text-gray-400 mt-1">Max: {Number(plafondPret).toLocaleString('fr-FR')} FCFA</p>
+          )}
         </div>
         <div>
           <label className="label">Taux annuel (%)</label>
           <input type="number" className="input" value={form.taux_interet} onChange={set('taux_interet')} min="0" max="100" step="0.1" />
+          <p className="text-xs text-gray-400 mt-1">Défaut: {Number(defaultTauxInteret).toLocaleString('fr-FR')} %</p>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">

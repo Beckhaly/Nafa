@@ -23,6 +23,10 @@ class SendDiffusionJob implements ShouldQueue
 
     public function handle(): void
     {
+        $parametres = DB::table('parametres')->where('id', 1)->first();
+        $enableSms = $parametres->enable_sms ?? true;
+        $enableWhatsApp = $parametres->enable_whatsapp ?? true;
+
         $pending = DB::table('diffusions')
             ->where('annonce_id', $this->annonceId)
             ->where('statut', 'pending')
@@ -30,6 +34,25 @@ class SendDiffusionJob implements ShouldQueue
 
         foreach ($pending as $diffusion) {
             try {
+                // Skip si le canal est désactivé
+                if ($diffusion->canal === 'sms' && ! $enableSms) {
+                    Log::info("Diffusion #{$diffusion->id} ignorée : SMS désactivé");
+                    DB::statement(
+                        'CALL sp_marquer_diffusion(?,?,?,?)',
+                        [$diffusion->id, 'echec', null, 'SMS désactivé dans les paramètres']
+                    );
+                    continue;
+                }
+
+                if ($diffusion->canal === 'whatsapp' && ! $enableWhatsApp) {
+                    Log::info("Diffusion #{$diffusion->id} ignorée : WhatsApp désactivé");
+                    DB::statement(
+                        'CALL sp_marquer_diffusion(?,?,?,?)',
+                        [$diffusion->id, 'echec', null, 'WhatsApp désactivé dans les paramètres']
+                    );
+                    continue;
+                }
+
                 $ref = match ($diffusion->canal) {
                     'sms'      => $this->sendSms($diffusion->telephone, $this->getContenu()),
                     'whatsapp' => $this->sendWhatsApp($diffusion->telephone, $this->getContenu()),
@@ -58,9 +81,10 @@ class SendDiffusionJob implements ShouldQueue
     private function sendSms(string $to, string $body): string
     {
         return match (config('services.sms_provider', config('app.sms_provider', 'orange'))) {
-            'orange'  => $this->sendSmsOrange($to, $body),
-            'twilio'  => $this->sendSmsTwilio($to, $body),
-            default   => throw new \RuntimeException('Provider SMS inconnu'),
+            'orange'      => $this->sendSmsOrange($to, $body),
+            'twilio'      => $this->sendSmsTwilio($to, $body),
+            'smspro'      => $this->sendSmsSmsPro($to, $body),
+            default       => throw new \RuntimeException('Provider SMS inconnu'),
         };
     }
 
@@ -144,6 +168,35 @@ class SendDiffusionJob implements ShouldQueue
         throw_unless($response->successful(), \RuntimeException::class, $response->body());
 
         return $response->json('sid');
+    }
+
+    // ── SMSPro Africa API ─────────────────────────────────────────────────────
+
+    private function sendSmsSmsPro(string $to, string $body): string
+    {
+        $apiKey    = config('services.smspro.api_key');
+        $senderID  = config('services.smspro.sender_id', 'NAFA');
+        $endpoint  = config('services.smspro.endpoint', 'https://api.smspro.africa/send');
+
+        // Normaliser le numéro de téléphone (retirer + et espaces)
+        $phone = preg_replace('/[\s\+\-]/', '', $to);
+
+        $response = Http::asJson()
+            ->withHeaders([
+                'Authorization' => "Bearer {$apiKey}",
+            ])
+            ->post($endpoint, [
+                'phone'    => $phone,
+                'message'  => $body,
+                'sender_id' => $senderID,
+            ]);
+
+        throw_unless($response->successful(), \RuntimeException::class,
+            'SMSPro error: ' . $response->body());
+
+        // Récupère l'ID du message de la réponse
+        // À adapter selon la structure réelle de la réponse SMSPro
+        return $response->json('message_id') ?? $response->json('id') ?? 'smspro-ok';
     }
 
     // =========================================================================

@@ -3,18 +3,77 @@ import { toast } from 'sonner'
 import dayjs from 'dayjs'
 import 'dayjs/locale/fr'
 import api from '../api/client'
+import { useSettings } from '../context/SettingsContext'
 import Spinner from '../components/Spinner'
 import Modal from '../components/Modal'
+import StatusBadge from '../components/StatusBadge'
 
 dayjs.locale('fr')
 
-const STATUT_BADGE = {
-  brouillon: 'badge bg-gray-100 text-gray-600',
-  publie:    'badge bg-green-100 text-green-700',
-  archive:   'badge bg-red-100 text-red-500',
+function shareAnnonceOnWhatsApp(annonce, whatsappGroupUrl) {
+  const lines = [
+    `════════════════════════════════`,
+    `📢 *${annonce.titre}*`,
+    `════════════════════════════════`,
+    ``,
+    `🏷️ *Type :* ${annonce.type}`,
+    ``,
+  ]
+
+  if (annonce.membre_concerne) {
+    lines.push(`👤 *Concernant :* ${annonce.membre_concerne}`)
+    lines.push(``)
+  }
+
+  lines.push(`📝 *Message :*`)
+  lines.push(`${annonce.contenu}`)
+
+  if (annonce.date_evenement) {
+    lines.push(``)
+    lines.push(`📅 *Date :* ${dayjs(annonce.date_evenement).format('dddd D MMMM YYYY')}`)
+  }
+
+  if (annonce.budget_cex) {
+    lines.push(``)
+    lines.push(`💰 *Budget Cotisation :*`)
+    lines.push(`   ${Number(annonce.budget_cex).toLocaleString('fr-FR')} FCFA par membre`)
+  }
+
+  lines.push(``)
+  lines.push(`════════════════════════════════`)
+
+  const message = lines.join('\n')
+  const encodedMessage = encodeURIComponent(message)
+  const whatsappUrl = `https://wa.me/?text=${encodedMessage}`
+
+  // Copier dans le presse-papiers
+  navigator.clipboard.writeText(message)
+    .then(() => {
+      if (whatsappGroupUrl) {
+        // Ouvrir le groupe WhatsApp
+        window.open(whatsappGroupUrl, '_blank')
+        toast.success('Groupe ouvert. Message copié - collez avec Ctrl+V')
+      } else {
+        // Ouvrir wa.me avec le message pré-rempli
+        window.open(whatsappUrl, '_blank')
+        toast.success('WhatsApp ouvert - le message est prêt à envoyer')
+      }
+    })
+    .catch(() => {
+      // Fallback: ouvrir juste wa.me
+      window.open(whatsappUrl, '_blank')
+      toast.info('Message affiché dans WhatsApp - copiez et collez si nécessaire')
+    })
+}
+
+const STATUT_ANNONCE_DATA = {
+  brouillon: { libelle: 'Brouillon', icone: '✏️', couleur: '#9CA3AF' },
+  publie:    { libelle: 'Publié', icone: '✅', couleur: '#4CAF50' },
+  archive:   { libelle: 'Archivé', icone: '📦', couleur: '#EF4444' },
 }
 
 export default function AnnoncesPage() {
+  const { settings } = useSettings()
   const [annonces,  setAnnonces]  = useState([])
   const [types,     setTypes]     = useState([])
   const [members,   setMembers]   = useState([])
@@ -22,6 +81,7 @@ export default function AnnoncesPage() {
   const [modal,     setModal]     = useState(null)
   const [diffModal, setDiffModal] = useState(null)
   const [search,    setSearch]    = useState('')
+  const whatsappGroupUrl = settings?.whatsapp_groupe || null
 
   const filteredAnnonces = annonces.filter((a) =>
     a.titre?.toLowerCase().includes(search.toLowerCase()) ||
@@ -57,59 +117,90 @@ export default function AnnoncesPage() {
       />
 
       {loading ? <Spinner /> : (
-        <div className="space-y-3">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {annonces.length === 0 ? (
-            <div className="card text-center py-12 text-gray-400">Aucune annonce</div>
+            <div className="card col-span-3 text-center py-12 text-gray-400">Aucune annonce</div>
           ) : filteredAnnonces.length === 0 ? (
-            <div className="card text-center py-12 text-gray-400">Aucune annonce ne correspond à votre recherche</div>
+            <div className="card col-span-3 text-center py-12 text-gray-400">Aucune annonce ne correspond à votre recherche</div>
           ) : filteredAnnonces.map((a) => (
-            <div key={a.id} className="card hover:shadow-md transition-shadow">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex items-start gap-3 min-w-0">
-                  <span
-                    className="w-3 h-3 rounded-full flex-shrink-0 mt-1.5"
-                    style={{ backgroundColor: a.type_couleur ?? '#999' }}
-                  />
-                  <div className="min-w-0">
-                    <p className="font-semibold text-gray-900">{a.titre}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {a.type}
-                      {a.date_evenement && (
-                        <> · <span className="text-gray-500">{dayjs(a.date_evenement).format('D MMM YYYY')}</span></>
-                      )}
-                    </p>
-                    {a.membre_concerne && (
-                      <p className="text-xs text-blue-600 mt-0.5">Concernant : {a.membre_concerne}</p>
-                    )}
+            <div
+              key={a.id}
+              className="card hover:shadow-md transition-shadow cursor-pointer flex flex-col"
+            >
+              <div className="flex justify-between items-start gap-2 mb-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors truncate">
+                    {a.titre}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: a.type_couleur ?? '#999' }}
+                    />
+                    <p className="text-xs text-gray-400 truncate">{a.type}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className={STATUT_BADGE[a.statut]}>{a.statut}</span>
-                  {a.statut !== 'archive' && (
-                    <button
-                      className="btn-primary text-xs py-1 px-3"
-                      onClick={() => setDiffModal(a)}
-                    >
-                      {a.statut === 'brouillon' ? 'Publier' : 'Rediffuser'}
-                    </button>
-                  )}
+                <div className="flex-shrink-0">
+                  <StatusBadge statut={a.statut} statusData={STATUT_ANNONCE_DATA[a.statut]} size="sm" />
                 </div>
               </div>
 
-              <p className="mt-3 text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2 font-mono leading-relaxed">
+              {a.date_evenement && (
+                <p className="text-xs text-gray-500 mb-2">📅 {dayjs(a.date_evenement).format('D MMM YYYY')}</p>
+              )}
+
+              {a.membre_concerne && (
+                <p className="text-xs text-blue-600 mb-2">👤 {a.membre_concerne}</p>
+              )}
+
+              <p className="text-sm text-gray-600 line-clamp-3 flex-grow mb-3">
                 {a.contenu}
               </p>
 
               {a.stats && a.statut !== 'brouillon' && (
-                <div className="mt-3 flex flex-wrap gap-3 text-xs text-gray-500">
-                  <span className="flex items-center gap-1">📱 SMS : {a.stats.via_sms ?? 0}</span>
-                  <span className="flex items-center gap-1">💬 WhatsApp : {a.stats.via_whatsapp ?? 0}</span>
-                  <span className="flex items-center gap-1 text-green-600">✓ {a.stats.envoyes ?? 0} envoyés</span>
-                  {(a.stats.echecs ?? 0) > 0 && (
-                    <span className="flex items-center gap-1 text-red-500">✗ {a.stats.echecs} échecs</span>
+                <div className="space-y-1.5 text-xs text-gray-500 mb-3 pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="flex items-center gap-1">📱 {a.stats.via_sms ?? 0}</span>
+                    <span className="flex items-center gap-1">💬 {a.stats.via_whatsapp ?? 0}</span>
+                  </div>
+                  {(a.stats.envoyes ?? 0) > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600">✓ {a.stats.envoyes}</span>
+                      {(a.stats.echecs ?? 0) > 0 && (
+                        <span className="text-red-500">✗ {a.stats.echecs}</span>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
+
+              <div className="flex flex-col gap-2">
+                {a.statut !== 'archive' && (
+                  <button
+                    className="btn-primary w-full text-xs py-1"
+                    onClick={() => setDiffModal(a)}
+                  >
+                    {a.statut === 'brouillon' ? 'Publier' : 'Rediffuser'}
+                  </button>
+                )}
+                {!!settings?.enable_whatsapp_share ? (
+                  <button
+                    className="btn-secondary w-full text-xs py-1"
+                    onClick={() => shareAnnonceOnWhatsApp(a, whatsappGroupUrl)}
+                    title="Partager sur WhatsApp"
+                  >
+                    💬 {whatsappGroupUrl ? 'Partager au groupe' : 'Partager'}
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="btn-secondary w-full text-xs py-1 opacity-50 cursor-not-allowed"
+                    title="Partage désactivé"
+                  >
+                    💬 Partage désactivé
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -238,6 +329,7 @@ function AnnonceForm({ types, members, onSave, onClose }) {
 }
 
 function PublishForm({ annonceId, members, onSuccess, onClose }) {
+  const { settings } = useSettings()
   const [canal,    setCanal]    = useState('both')
   const [cibles,   setCibles]   = useState('all')
   const [selected, setSelected] = useState([])
@@ -262,15 +354,28 @@ function PublishForm({ annonceId, members, onSuccess, onClose }) {
     }
   }
 
+  const canalOptions = [
+    {v: 'sms', l: '📱 SMS', enabled: !!settings?.enable_sms},
+    {v: 'whatsapp', l: '💬 WhatsApp', enabled: !!settings?.enable_whatsapp},
+    {v: 'both', l: '📱💬 Les deux', enabled: (!!settings?.enable_sms && !!settings?.enable_whatsapp)},
+  ]
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="label">Canal *</label>
         <div className="flex gap-4">
-          {[['sms','📱 SMS'],['whatsapp','💬 WhatsApp'],['both','📱💬 Les deux']].map(([v, l]) => (
-            <label key={v} className="flex items-center gap-2 cursor-pointer text-sm">
-              <input type="radio" value={v} checked={canal === v} onChange={() => setCanal(v)} className="accent-blue-600" />
-              {l}
+          {canalOptions.map(({v, l, enabled}) => (
+            <label key={v} className={`flex items-center gap-2 text-sm ${enabled ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}>
+              <input
+                type="radio"
+                value={v}
+                checked={canal === v}
+                onChange={() => setCanal(v)}
+                disabled={!enabled}
+                className="accent-blue-600"
+              />
+              {l} {!enabled && <span className="text-xs text-gray-400">(désactivé)</span>}
             </label>
           ))}
         </div>

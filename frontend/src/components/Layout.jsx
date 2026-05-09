@@ -176,10 +176,12 @@ function SidebarContent({ onClose }) {
 function UserMenu({ user, onLogout }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
+  const navigate = useNavigate()
   const roleInfo = ROLE_LABELS[user?.role] ?? { label: user?.role ?? '', color: 'bg-gray-100 text-gray-600' }
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : 'U'
+  const hasMemberPortal = user?.role !== 'membre'
 
   useEffect(() => {
     const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -231,7 +233,17 @@ function UserMenu({ user, onLogout }) {
             </div>
           </div>
           {/* Actions */}
-          <div className="p-2">
+          <div className="p-2 space-y-1">
+            {hasMemberPortal && (
+              <button
+                onClick={() => { setOpen(false); navigate('/portail') }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-blue-600
+                           hover:bg-blue-50 transition-colors font-medium"
+              >
+                <Ico name="user" className="w-4 h-4" />
+                Portail Membre
+              </button>
+            )}
             <button
               onClick={() => { setOpen(false); onLogout() }}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-600

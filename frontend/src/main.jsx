@@ -35,9 +35,8 @@ function PrivateRoute({ children }) {
 }
 
 function MemberRoute({ children }) {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated } = useAuth()
   if (!isAuthenticated) return <Navigate to="/login" replace />
-  if (user?.role !== 'membre') return <Navigate to="/" replace />
   return children
 }
 

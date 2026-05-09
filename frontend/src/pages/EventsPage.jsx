@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import dayjs from 'dayjs'
 import 'dayjs/locale/fr'
 import api from '../api/client'
+import { useSettings } from '../context/SettingsContext'
 import Spinner from '../components/Spinner'
 import Modal from '../components/Modal'
 import StatusBadge from '../components/StatusBadge'
@@ -16,7 +17,70 @@ const STATUT_PARTICIPANT = {
   inscrit: 'badge bg-gray-100 text-gray-500',
 }
 
+function shareEventOnWhatsApp(event, whatsappGroupUrl) {
+  const lines = [
+    `════════════════════════════════`,
+    `📅 *${event.titre}*`,
+    `════════════════════════════════`,
+    ``,
+    `🏷️ *Type :* ${event.type}`,
+    ``,
+  ]
+
+  lines.push(`📍 *Dates :*`)
+  lines.push(`   🔹 Début : ${dayjs(event.date_debut).format('dddd D MMMM YYYY')}`)
+
+  if (event.date_fin && event.date_fin !== event.date_debut) {
+    lines.push(`   🔹 Fin : ${dayjs(event.date_fin).format('dddd D MMMM YYYY')}`)
+  }
+
+  if (event.lieu) {
+    lines.push(``)
+    lines.push(`📌 *Lieu :*`)
+    lines.push(`   ${event.lieu}`)
+  }
+
+  if (event.description) {
+    lines.push(``)
+    lines.push(`📝 *Description :*`)
+    lines.push(`   ${event.description}`)
+  }
+
+  if (event.budget_cex) {
+    lines.push(``)
+    lines.push(`💰 *Budget Cotisation :*`)
+    lines.push(`   ${Number(event.budget_cex).toLocaleString('fr-FR')} FCFA par membre`)
+  }
+
+  lines.push(``)
+  lines.push(`════════════════════════════════`)
+
+  const message = lines.join('\n')
+  const encodedMessage = encodeURIComponent(message)
+  const whatsappUrl = `https://wa.me/?text=${encodedMessage}`
+
+  // Copier dans le presse-papiers
+  navigator.clipboard.writeText(message)
+    .then(() => {
+      if (whatsappGroupUrl) {
+        // Ouvrir le groupe WhatsApp
+        window.open(whatsappGroupUrl, '_blank')
+        toast.success('Groupe ouvert. Message copié - collez avec Ctrl+V')
+      } else {
+        // Ouvrir wa.me avec le message pré-rempli
+        window.open(whatsappUrl, '_blank')
+        toast.success('WhatsApp ouvert - le message est prêt à envoyer')
+      }
+    })
+    .catch(() => {
+      // Fallback: ouvrir juste wa.me
+      window.open(whatsappUrl, '_blank')
+      toast.info('Message affiché dans WhatsApp - copiez et collez si nécessaire')
+    })
+}
+
 export default function EventsPage() {
+  const { settings } = useSettings()
   const [events,  setEvents]  = useState([])
   const [types,   setTypes]   = useState([])
   const [loading, setLoading] = useState(true)
@@ -26,6 +90,7 @@ export default function EventsPage() {
   const statusLabels = useStatusLabels()
   const eventStatusMap = statusLabels['statuts-events'] || {}
   const getStatusData = (key) => eventStatusMap[key?.toLowerCase()] || null
+  const whatsappGroupUrl = settings?.whatsapp_groupe || null
 
   const filteredEvents = events.filter((ev) =>
     ev.titre?.toLowerCase().includes(search.toLowerCase()) ||
@@ -174,6 +239,24 @@ export default function EventsPage() {
                 </ul>
               ) : (
                 <p className="text-gray-400 text-sm">Aucun participant enregistré</p>
+              )}
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-gray-100">
+              {!!settings?.enable_whatsapp_share ? (
+                <button
+                  onClick={() => shareEventOnWhatsApp(detail, whatsappGroupUrl)}
+                  className="btn-primary flex-1 flex items-center justify-center gap-2 text-sm"
+                >
+                  {whatsappGroupUrl ? '💬 Partager au groupe' : '💬 Partager sur WhatsApp'}
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="btn-primary flex-1 flex items-center justify-center gap-2 text-sm opacity-50 cursor-not-allowed"
+                >
+                  💬 Partage désactivé
+                </button>
               )}
             </div>
           </div>

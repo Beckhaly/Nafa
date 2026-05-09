@@ -145,7 +145,22 @@
       "Bash(curl -s http://localhost:8000/storage/logos/62WviSRlTFOSCtXRZUMoRaQYs6TK3rhDjCsV5gJ3.jpg)",
       "Bash(git -C \"C:\\\\Projects\\\\Nafa\" add -A)",
       "Bash(git -C 'C:\\\\Projects\\\\Nafa' commit -m ' *)",
-      "Bash(git -C 'C:\\\\Projects\\\\Nafa' commit -m 'Fix: Remove unused StatusBadge import from UsersPage *)"
+      "Bash(git -C 'C:\\\\Projects\\\\Nafa' commit -m 'Fix: Remove unused StatusBadge import from UsersPage *)",
+      "WebFetch(domain:smspro.africa)",
+      "WebSearch",
+      "Bash(mysql -h 127.0.0.1 -u root -proot nafa -e \"DESCRIBE parametres;\")",
+      "Bash(curl -X PUT http://localhost:8000/api/parametres -H 'Content-Type: application/json' -H 'Accept: application/json' -H 'Authorization: Bearer dummy-token' -d '{ *)",
+      "Bash(pkill -f \"php artisan serve\")",
+      "Bash(curl -s http://localhost:8000/api/parametres)",
+      "Bash(curl -s -X PUT http://localhost:8000/api/parametres -H 'Content-Type: application/json' -d '{\"nom_association\":\"TEST\"}')",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs kill *)",
+      "Bash(curl -s http://localhost:8000/api/admin/reference/statuts-membres)",
+      "Bash(curl -s http://localhost:8000/api/health)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(where mysqld *)",
+      "Read(//c/Program Files \\(x86\\)/MySQL/MySQL Server 8.0/bin/**)",
+      "Read(//c/MySQL/bin/**)"
     ]
   }
 }

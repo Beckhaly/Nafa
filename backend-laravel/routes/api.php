@@ -120,6 +120,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // -------------------------------------------------------------------------
     // Administration — tables de référence
     // -------------------------------------------------------------------------
+    Route::get   ('admin/reference/{ref}/stats',[AdminController::class, 'getUsageStats']);
     Route::get   ('admin/reference/{ref}',     [AdminController::class, 'listRef']);
     Route::post  ('admin/reference/{ref}',     [AdminController::class, 'createRef']);
     Route::put   ('admin/reference/{ref}/{id}',[AdminController::class, 'updateRef']);

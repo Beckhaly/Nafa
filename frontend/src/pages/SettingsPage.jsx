@@ -128,6 +128,9 @@ export default function SettingsPage() {
         logo_url:                     form.logo_url                  || null,
         reglement_interieur:          form.reglement_interieur       || null,
         reglement_url:                form.reglement_url             || null,
+        enable_sms:                   form.enable_sms                ?? true,
+        enable_whatsapp:              form.enable_whatsapp           ?? true,
+        enable_whatsapp_share:        form.enable_whatsapp_share     ?? true,
       })
       toast.success('Paramètres enregistrés')
       reloadSettings()
@@ -405,32 +408,68 @@ export default function SettingsPage() {
 
         {/* ══════════ ONGLET SYSTÈME ═══════════════════════════════ */}
         {tab === 'systeme' && (
-          <Section title="Exercice & Système" icon="🗓️">
-            <Field label="Exercice en cours *"
-              hint="Année de référence pour les rapports et la matrice de cotisations">
-              <select className="input max-w-xs"
-                value={form.exercice_courant ?? CURRENT_YEAR}
-                onChange={set('exercice_courant')}>
-                {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-              </select>
-            </Field>
+          <div className="space-y-5">
+            <Section title="Exercice & Système" icon="🗓️">
+              <Field label="Exercice en cours *"
+                hint="Année de référence pour les rapports et la matrice de cotisations">
+                <select className="input max-w-xs"
+                  value={form.exercice_courant ?? CURRENT_YEAR}
+                  onChange={set('exercice_courant')}>
+                  {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </Field>
 
-            {/* Infos read-only */}
-            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100">
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Dernière mise à jour</p>
-                <p className="text-sm font-semibold text-gray-700">
-                  {form.updated_at
-                    ? new Date(form.updated_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                    : '—'}
-                </p>
+              {/* Infos read-only */}
+              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Dernière mise à jour</p>
+                  <p className="text-sm font-semibold text-gray-700">
+                    {form.updated_at
+                      ? new Date(form.updated_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                      : '—'}
+                  </p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Version plateforme</p>
+                  <p className="text-sm font-semibold text-gray-700">Nafa Platform v1.0</p>
+                </div>
               </div>
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Version plateforme</p>
-                <p className="text-sm font-semibold text-gray-700">Nafa Platform v1.0</p>
-              </div>
-            </div>
-          </Section>
+            </Section>
+
+            <Section title="Configuration Diffusion" icon="📤">
+              <Field label="Activer/Désactiver les canaux de diffusion">
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input type="checkbox" className="w-4 h-4 accent-blue-600"
+                      checked={form.enable_sms ?? true}
+                      onChange={(e) => setVal('enable_sms', e.target.checked)} />
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">📱 Diffusion par SMS</p>
+                      <p className="text-xs text-gray-500">Envoyer les annonces par SMS (via l'API configurée)</p>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input type="checkbox" className="w-4 h-4 accent-blue-600"
+                      checked={form.enable_whatsapp ?? true}
+                      onChange={(e) => setVal('enable_whatsapp', e.target.checked)} />
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">💬 Diffusion par WhatsApp</p>
+                      <p className="text-xs text-gray-500">Envoyer les annonces par WhatsApp (via l'API configurée)</p>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input type="checkbox" className="w-4 h-4 accent-blue-600"
+                      checked={form.enable_whatsapp_share ?? true}
+                      onChange={(e) => setVal('enable_whatsapp_share', e.target.checked)} />
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">🤝 Partage WhatsApp manuel</p>
+                      <p className="text-xs text-gray-500">Permettre aux utilisateurs de partager manuellement les annonces et événements sur WhatsApp</p>
+                    </div>
+                  </label>
+                </div>
+              </Field>
+            </Section>
+          </div>
         )}
 
         {/* ── Bouton Enregistrer (hors onglet règlement, le PDF s'upload séparément) ── */}

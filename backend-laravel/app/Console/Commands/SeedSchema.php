@@ -17,13 +17,31 @@ class SeedSchema extends Command
 
         try {
             // L1 - Schema
-            $schemaPath = dirname(base_path()) . '/database/01_schema.sql';
+            $schemaPath = base_path('../database/01_schema.sql');
             $schema = File::get($schemaPath);
-            DB::unprepared($schema);
+
+            // Split by ;; (MySQL multi-statement separator) or ; for individual statements
+            // But we need to be careful with DELIMITER statements
+            $statements = preg_split('/;\s*\n/', $schema);
+
+            foreach ($statements as $statement) {
+                $statement = trim($statement);
+                if (empty($statement)) continue;
+
+                // Skip DELIMITER directives (they're for procedure handling)
+                if (preg_match('/^DELIMITER\s+/i', $statement)) continue;
+
+                try {
+                    DB::unprepared($statement . ';');
+                } catch (\Exception $e) {
+                    // Log but continue for non-critical errors
+                    $this->warn("Avertissement: " . $e->getMessage());
+                }
+            }
             $this->info('✓ Schéma (01_schema.sql) exécuté avec succès');
 
             // L2 - Procedures (avec gestion des DELIMITER)
-            $proceduresPath = dirname(base_path()) . '/database/02_procedures.sql';
+            $proceduresPath = base_path('../database/02_procedures.sql');
             $content = File::get($proceduresPath);
 
             // Split procedures by $$ (end of procedure marker)

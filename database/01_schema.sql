@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS roles_membres (
     UNIQUE KEY uq_roles_membres_libelle (libelle)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+ALTER TABLE roles_membres ADD COLUMN IF NOT EXISTS ordre TINYINT UNSIGNED NOT NULL DEFAULT 99 COMMENT 'Ordre affichage';
+
 INSERT INTO roles_membres (libelle, ordre) VALUES
     ('Président',       1),
     ('Vice-Président',  2),
@@ -99,6 +101,163 @@ INSERT INTO types_evenement (libelle) VALUES
     ('Activité caritative'),
     ('Autre')
 ON DUPLICATE KEY UPDATE libelle = VALUES(libelle);
+
+-- =============================================================================
+-- STATUTS & ÉNUMÉRATIONS (remplacent les ENUM hardcodés)
+-- Créées après les tables de base — aucune dépendance
+-- =============================================================================
+
+-- statuts_membres  — remplace ENUM('actif','inactif','suspendu')
+CREATE TABLE IF NOT EXISTS statuts_membres (
+    id          SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    libelle     VARCHAR(50)       NOT NULL,
+    icone       VARCHAR(10)       NULL COMMENT 'Emoji ou icone',
+    couleur     VARCHAR(20)       NULL COMMENT 'Couleur hex ou CSS',
+    description VARCHAR(255)      NULL,
+    ordre       TINYINT UNSIGNED  NOT NULL DEFAULT 99,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_statuts_membres_libelle (libelle)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO statuts_membres (libelle, icone, couleur, description, ordre) VALUES
+    ('Actif',    '👤', '#10b981', 'Membre actif et à jour', 1),
+    ('Inactif',  '🔒', '#6b7280', 'Membre inactif ou démissionnaire', 2),
+    ('Suspendu', '⚠️',  '#ef4444', 'Suspension temporaire ou disciplinaire', 3)
+ON DUPLICATE KEY UPDATE icone = VALUES(icone), couleur = VALUES(couleur);
+
+-- statuts_contributions  — remplace ENUM('paid','partial','unpaid')
+CREATE TABLE IF NOT EXISTS statuts_contributions (
+    id          SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    libelle     VARCHAR(50)       NOT NULL,
+    icone       VARCHAR(10)       NULL,
+    couleur     VARCHAR(20)       NULL,
+    description VARCHAR(255)      NULL,
+    ordre       TINYINT UNSIGNED  NOT NULL DEFAULT 99,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_statuts_contributions_libelle (libelle)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO statuts_contributions (libelle, icone, couleur, description, ordre) VALUES
+    ('Payé',      '✅', '#10b981', 'Cotisation intégralement payée', 1),
+    ('Partiel',   '⚠️',  '#f59e0b', 'Cotisation partiellement payée', 2),
+    ('Impayé',    '❌', '#ef4444', 'Cotisation non payée', 3)
+ON DUPLICATE KEY UPDATE icone = VALUES(icone), couleur = VALUES(couleur);
+
+-- statuts_cotisations_exceptionnelles  — remplace ENUM('paid','partial','unpaid')
+CREATE TABLE IF NOT EXISTS statuts_cotisations_exceptionnelles (
+    id          SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    libelle     VARCHAR(50)       NOT NULL,
+    icone       VARCHAR(10)       NULL,
+    couleur     VARCHAR(20)       NULL,
+    description VARCHAR(255)      NULL,
+    ordre       TINYINT UNSIGNED  NOT NULL DEFAULT 99,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_statuts_cex_libelle (libelle)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO statuts_cotisations_exceptionnelles (libelle, icone, couleur, description, ordre) VALUES
+    ('Payé',      '✅', '#10b981', 'Appel de fonds intégralement payé', 1),
+    ('Partiel',   '⚠️',  '#f59e0b', 'Appel de fonds partiellement payé', 2),
+    ('Impayé',    '❌', '#ef4444', 'Appel de fonds non payé', 3)
+ON DUPLICATE KEY UPDATE icone = VALUES(icone), couleur = VALUES(couleur);
+
+-- statuts_loans  — remplace ENUM('actif','en_retard','solde')
+CREATE TABLE IF NOT EXISTS statuts_loans (
+    id          SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    libelle     VARCHAR(50)       NOT NULL,
+    icone       VARCHAR(10)       NULL,
+    couleur     VARCHAR(20)       NULL,
+    description VARCHAR(255)      NULL,
+    ordre       TINYINT UNSIGNED  NOT NULL DEFAULT 99,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_statuts_loans_libelle (libelle)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO statuts_loans (libelle, icone, couleur, description, ordre) VALUES
+    ('Actif',      '💳', '#3b82f6', 'Prêt en cours de remboursement', 1),
+    ('En retard',  '⏰', '#ef4444', 'Prêt avec échéances impayées', 2),
+    ('Soldé',      '✅', '#10b981', 'Prêt entièrement remboursé', 3)
+ON DUPLICATE KEY UPDATE icone = VALUES(icone), couleur = VALUES(couleur);
+
+-- statuts_events  — remplace ENUM('planifie','en_cours','termine','annule')
+CREATE TABLE IF NOT EXISTS statuts_events (
+    id          SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    libelle     VARCHAR(50)       NOT NULL,
+    icone       VARCHAR(10)       NULL,
+    couleur     VARCHAR(20)       NULL,
+    description VARCHAR(255)      NULL,
+    ordre       TINYINT UNSIGNED  NOT NULL DEFAULT 99,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_statuts_events_libelle (libelle)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO statuts_events (libelle, icone, couleur, description, ordre) VALUES
+    ('Planifié',  '📋', '#8b5cf6', 'Événement en préparation', 1),
+    ('En cours',  '🔴', '#ec4899', 'Événement actuellement en cours', 2),
+    ('Terminé',   '✅', '#10b981', 'Événement achevé', 3),
+    ('Annulé',    '❌', '#6b7280', 'Événement annulé', 4)
+ON DUPLICATE KEY UPDATE icone = VALUES(icone), couleur = VALUES(couleur);
+
+-- statuts_participants  — remplace ENUM('inscrit','present','absent')
+CREATE TABLE IF NOT EXISTS statuts_participants (
+    id          SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    libelle     VARCHAR(50)       NOT NULL,
+    icone       VARCHAR(10)       NULL,
+    couleur     VARCHAR(20)       NULL,
+    description VARCHAR(255)      NULL,
+    ordre       TINYINT UNSIGNED  NOT NULL DEFAULT 99,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_statuts_participants_libelle (libelle)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO statuts_participants (libelle, icone, couleur, description, ordre) VALUES
+    ('Inscrit',  '📝', '#8b5cf6', 'Participant inscrit mais non confirmé', 1),
+    ('Présent',  '👍', '#10b981', 'Participant présent à l''événement', 2),
+    ('Absent',   '❌', '#ef4444', 'Participant absent', 3)
+ON DUPLICATE KEY UPDATE icone = VALUES(icone), couleur = VALUES(couleur);
+
+-- canaux_diffusion  — remplace ENUM('sms','whatsapp')
+CREATE TABLE IF NOT EXISTS canaux_diffusion (
+    id          SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    libelle     VARCHAR(50)       NOT NULL,
+    icone       VARCHAR(10)       NULL,
+    couleur     VARCHAR(20)       NULL,
+    description VARCHAR(255)      NULL,
+    ordre       TINYINT UNSIGNED  NOT NULL DEFAULT 99,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_canaux_diffusion_libelle (libelle)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO canaux_diffusion (libelle, icone, couleur, description, ordre) VALUES
+    ('SMS',      '📱', '#06b6d4', 'Envoi par SMS (Twilio)', 1),
+    ('WhatsApp', '💬', '#25d366', 'Envoi via WhatsApp', 2)
+ON DUPLICATE KEY UPDATE icone = VALUES(icone), couleur = VALUES(couleur);
+
+-- statuts_diffusions  — remplace ENUM('pending','envoye','echec')
+CREATE TABLE IF NOT EXISTS statuts_diffusions (
+    id          SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    libelle     VARCHAR(50)       NOT NULL,
+    icone       VARCHAR(10)       NULL,
+    couleur     VARCHAR(20)       NULL,
+    description VARCHAR(255)      NULL,
+    ordre       TINYINT UNSIGNED  NOT NULL DEFAULT 99,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_statuts_diffusions_libelle (libelle)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO statuts_diffusions (libelle, icone, couleur, description, ordre) VALUES
+    ('Pending',  '⏳', '#8b5cf6', 'Diffusion en attente d''envoi', 1),
+    ('Envoyé',   '✅', '#10b981', 'Diffusion envoyée avec succès', 2),
+    ('Échec',    '❌', '#ef4444', 'Envoi échoué', 3)
+ON DUPLICATE KEY UPDATE icone = VALUES(icone), couleur = VALUES(couleur);
 
 
 -- =============================================================================
@@ -943,10 +1102,22 @@ CREATE TABLE IF NOT EXISTS parametres (
     adresse                      TEXT              NULL,
     telephone                    VARCHAR(30)       NULL,
     email_contact                VARCHAR(150)      NULL,
+    site_web                     VARCHAR(255)      NULL,
+    whatsapp_groupe              VARCHAR(255)      NULL,
+    date_creation                DATE              NULL,
+    numero_enregistrement        VARCHAR(100)      NULL,
     montant_cotisation_mensuelle DECIMAL(15,2)     NOT NULL DEFAULT 5000.00,
+    montant_adhesion             DECIMAL(15,2)     NULL,
     devise                       VARCHAR(10)       NOT NULL DEFAULT 'FCFA',
+    plafond_pret                 DECIMAL(15,2)     NULL,
+    taux_interet_pret            DECIMAL(5,2)      NULL,
     exercice_courant             SMALLINT UNSIGNED NOT NULL DEFAULT 2026,
     logo_url                     VARCHAR(255)      NULL,
+    reglement_interieur          LONGTEXT          NULL,
+    reglement_url                VARCHAR(255)      NULL,
+    enable_sms                   BOOLEAN           NOT NULL DEFAULT 1 COMMENT 'Activer la diffusion par SMS',
+    enable_whatsapp              BOOLEAN           NOT NULL DEFAULT 1 COMMENT 'Activer la diffusion par WhatsApp',
+    enable_whatsapp_share        BOOLEAN           NOT NULL DEFAULT 1 COMMENT 'Activer le partage WhatsApp manuel',
     updated_at                   TIMESTAMP         DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT chk_parametres_singleton CHECK (id = 1)

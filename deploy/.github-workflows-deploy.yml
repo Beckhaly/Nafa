@@ -1,0 +1,183 @@
+# ═════════════════════════════════════════════════════════════════════════════
+# NAFA — GitHub Actions Deployment Workflow
+#
+# À placer dans votre repo: .github/workflows/deploy.yml
+#
+# Déclenche automatiquement un déploiement quand vous pushez sur 'main'
+# Nécessite de configurer les secrets GitHub:
+#   - VPS_HOST (adresse IP ou domaine du VPS)
+#   - VPS_USER (utilisateur SSH, généralement 'root')
+#   - VPS_KEY (clé privée SSH)
+#   - VPS_DOMAIN (domaine de l'application)
+# ═════════════════════════════════════════════════════════════════════════════
+
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Permet de déclencher manuellement
+
+env:
+  NODE_VERSION: '18'
+  PHP_VERSION: '8.2'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ─────────────────────────────────────────────────────────────────────
+      # 1. Checkout du code
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 2. Tests et validations (optionnel)
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: curl, gd, mbstring, xml, bcmath, intl
+          coverage: none
+
+      - name: Validate Composer
+        run: composer validate --strict
+        working-directory: backend-laravel
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Validate package.json
+        run: |
+          npm ci
+          npm run build
+        working-directory: frontend
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 3. Deploy to VPS
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.VPS_KEY }}
+          known_hosts: ${{ secrets.VPS_HOST }}
+
+      - name: Deploy application
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+
+          set -e
+
+          echo "📦 Déploiement en cours..."
+
+          # Naviguer vers le répertoire d'application
+          cd /var/www/nafa
+
+          # Mettre à jour le code
+          echo "📥 Mise à jour du code..."
+          git pull origin main
+
+          # Déployer le backend
+          echo "🔧 Déploiement du backend..."
+          cd backend-laravel
+          composer install --optimize-autoloader --no-dev
+          php artisan migrate --force
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+
+          # Déployer le frontend
+          echo "🎨 Déploiement du frontend..."
+          cd ../frontend
+          npm ci --production
+          npm run build
+
+          # Redémarrer les services
+          echo "🔄 Redémarrage des services..."
+          sudo systemctl restart php8.2-fpm
+          sudo systemctl reload nginx
+
+          echo "✅ Déploiement réussi!"
+
+          EOF
+
+      - name: Verify deployment
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+
+          echo "🔍 Vérification du déploiement..."
+
+          cd /var/www/nafa
+
+          # Vérifier les services
+          systemctl is-active --quiet nginx && echo "✅ Nginx actif" || echo "❌ Nginx inactif"
+          systemctl is-active --quiet php8.2-fpm && echo "✅ PHP-FPM actif" || echo "❌ PHP-FPM inactif"
+          systemctl is-active --quiet mysql && echo "✅ MySQL actif" || echo "❌ MySQL inactif"
+
+          # Vérifier les erreurs récentes
+          echo ""
+          echo "📋 Dernières erreurs (if any):"
+          tail -20 backend-laravel/storage/logs/laravel.log | grep -i error || echo "✅ Aucune erreur"
+
+          EOF
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 4. Notifications
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Send Slack notification (success)
+        if: success()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+          payload: |
+            {
+              "text": "✅ Déploiement Nafa réussi!",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*✅ Déploiement Nafa réussi!*\n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Auteur:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+
+      - name: Send Slack notification (failure)
+        if: failure()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+          payload: |
+            {
+              "text": "❌ Échec du déploiement Nafa",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*❌ Échec du déploiement Nafa*\n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Auteur:* ${{ github.actor }}\n*Logs:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Alternative: Manual approval before deploy (for production)
+  # ─────────────────────────────────────────────────────────────────────────
+
+  # approval:
+  #   runs-on: ubuntu-latest
+  #   environment: production  # Demande une approbation manuelle
+  #   steps:
+  #     - name: Deploy with approval
+  #       run: echo "Déploiement approuvé - procédure de déploiement en cours..."

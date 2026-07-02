@@ -284,24 +284,26 @@ export default function MembersPage() {
   const handleSave = async (formData) => {
     const { createUser, ...form } = formData
 
+    const creerCompte = async (memberId) => {
+      await api.post('/admin/users', {
+        name: `${form.prenom} ${form.nom}`,
+        email: form.telephone,
+        password: createUser.password,
+        role_id: createUser.role_id,
+        member_id: memberId,
+        is_active: 1,
+      })
+    }
+
     if (modal.mode === 'create') {
-      // Créer le membre
       const memberRes = await api.post('/members', form)
       const memberId = memberRes.data.id
 
-      // Créer l'utilisateur si demandé
       if (createUser) {
         try {
-          await api.post('/admin/users', {
-            name: `${form.prenom} ${form.nom}`,
-            email: form.telephone,
-            password: createUser.password,
-            role_id: createUser.role_id,
-            is_active: 1,
-          })
+          await creerCompte(memberId)
           toast.success('Membre et utilisateur créés avec succès')
         } catch (err) {
-          // Le membre a été créé mais pas l'utilisateur
           toast.warning('Membre créé mais la création de l\'utilisateur a échoué')
           console.error('Erreur création utilisateur:', err)
         }
@@ -310,7 +312,19 @@ export default function MembersPage() {
       }
     } else {
       await api.put(`/members/${modal.data.id}`, form)
-      toast.success('Membre mis à jour')
+
+      if (createUser) {
+        try {
+          await creerCompte(modal.data.id)
+          toast.success('Membre mis à jour et compte utilisateur créé')
+        } catch (err) {
+          toast.success('Membre mis à jour')
+          toast.warning('La création du compte utilisateur a échoué')
+          console.error('Erreur création utilisateur:', err)
+        }
+      } else {
+        toast.success('Membre mis à jour')
+      }
     }
     load()
   }

@@ -206,9 +206,10 @@ class AdminController extends Controller
     {
         $data = $request->validate([
             'name'      => 'required|string|max:150',
-            'email'     => 'required|email|unique:users,email',
+            'email'     => 'required|string|max:255|unique:users,email',
             'password'  => 'required|string|min:8',
             'role_id'   => 'required|integer|exists:roles_utilisateurs,id',
+            'member_id' => 'nullable|integer|exists:members,id',
             'is_active' => 'boolean',
         ]);
 

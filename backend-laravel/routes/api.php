@@ -118,20 +118,21 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // -------------------------------------------------------------------------
-    // Administration — tables de référence
+    // Administration — réservé aux admins
     // -------------------------------------------------------------------------
-    Route::get   ('admin/reference/{ref}/stats',[AdminController::class, 'getUsageStats']);
-    Route::get   ('admin/reference/{ref}',     [AdminController::class, 'listRef']);
-    Route::post  ('admin/reference/{ref}',     [AdminController::class, 'createRef']);
-    Route::put   ('admin/reference/{ref}/{id}',[AdminController::class, 'updateRef']);
-    Route::delete('admin/reference/{ref}/{id}',[AdminController::class, 'deleteRef']);
+    Route::middleware('admin')->group(function () {
+        Route::get   ('admin/reference/{ref}/stats',[AdminController::class, 'getUsageStats']);
+        Route::get   ('admin/reference/{ref}',     [AdminController::class, 'listRef']);
+        Route::post  ('admin/reference/{ref}',     [AdminController::class, 'createRef']);
+        Route::put   ('admin/reference/{ref}/{id}',[AdminController::class, 'updateRef']);
+        Route::delete('admin/reference/{ref}/{id}',[AdminController::class, 'deleteRef']);
 
-    // Administration — utilisateurs
-    Route::get   ('admin/users',      [AdminController::class, 'listUsers']);
-    Route::get   ('admin/roles-utilisateurs', [AdminController::class, 'rolesUtilisateurs']);
-    Route::post  ('admin/users',      [AdminController::class, 'createUser']);
-    Route::put   ('admin/users/{id}', [AdminController::class, 'updateUser']);
-    Route::delete('admin/users/{id}', [AdminController::class, 'deleteUser']);
+        Route::get   ('admin/users',               [AdminController::class, 'listUsers']);
+        Route::get   ('admin/roles-utilisateurs',  [AdminController::class, 'rolesUtilisateurs']);
+        Route::post  ('admin/users',               [AdminController::class, 'createUser']);
+        Route::put   ('admin/users/{id}',          [AdminController::class, 'updateUser']);
+        Route::delete('admin/users/{id}',          [AdminController::class, 'deleteUser']);
+    });
 
     // -------------------------------------------------------------------------
     // Paramètres association

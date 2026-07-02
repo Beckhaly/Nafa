@@ -34,6 +34,13 @@ function PrivateRoute({ children }) {
   return children
 }
 
+function AdminRoute({ children }) {
+  const { isAuthenticated, user } = useAuth()
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (user?.role !== 'admin') return <Navigate to="/" replace />
+  return children
+}
+
 function MemberRoute({ children }) {
   const { isAuthenticated } = useAuth()
   if (!isAuthenticated) return <Navigate to="/login" replace />
@@ -59,8 +66,8 @@ function App() {
             <Route path="annonces"          element={<AnnoncesPage />} />
             <Route path="finances"          element={<FinancePage />} />
             <Route path="parametres"        element={<SettingsPage />} />
-            <Route path="admin/reference"    element={<ReferenceDataPage />} />
-            <Route path="admin/utilisateurs" element={<UsersPage />} />
+            <Route path="admin/reference"    element={<AdminRoute><ReferenceDataPage /></AdminRoute>} />
+            <Route path="admin/utilisateurs" element={<AdminRoute><UsersPage /></AdminRoute>} />
           </Route>
           <Route path="/portail" element={<MemberRoute><MemberLayout /></MemberRoute>}>
             <Route index                       element={<MemberDashboard />} />

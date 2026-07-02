@@ -59,9 +59,11 @@ const ROLE_LABELS = {
 /* ── Sidebar ──────────────────────────────────────────────── */
 function SidebarContent({ onClose }) {
   const { settings } = useSettings()
+  const { user } = useAuth()
   const location = useLocation()
   const nomAssociation = settings?.nom_association ?? 'Nafa'
   const slogan = settings?.slogan ?? 'Gestion Associative'
+  const isAdmin = user?.role === 'admin'
 
   const isAdminActive = location.pathname.startsWith('/admin')
   const [adminOpen, setAdminOpen] = useState(isAdminActive)
@@ -121,8 +123,8 @@ function SidebarContent({ onClose }) {
           </NavLink>
         ))}
 
-        {/* Administration collapsible */}
-        <div className="pt-1">
+        {/* Administration collapsible — admin uniquement */}
+        {isAdmin && <div className="pt-1">
           <button
             onClick={() => setAdminOpen((o) => !o)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
@@ -158,7 +160,7 @@ function SidebarContent({ onClose }) {
               ))}
             </div>
           )}
-        </div>
+        </div>}
       </nav>
 
       {/* Bas sidebar : version */}

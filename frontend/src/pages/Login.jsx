@@ -2,13 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const DEMO_ACCOUNTS = [
-  { label: 'Admin',      email: 'admin@nafa.sn',      role: 'Administrateur' },
-  { label: 'Trésorier',  email: 'tresorier@nafa.sn',  role: 'Finances' },
-  { label: 'Secrétaire', email: 'secretaire@nafa.sn', role: 'Membres & Événements' },
-  { label: 'Membre',     email: 'membre@nafa.sn',     role: 'Portail membre' },
-]
-
 export default function Login() {
   const { login }  = useAuth()
   const navigate   = useNavigate()
@@ -16,7 +9,6 @@ export default function Login() {
   const [showPwd, setShowPwd] = useState(false)
   const [error, setError]     = useState(null)
   const [loading, setLoading] = useState(false)
-  const [showDemo, setShowDemo] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -31,9 +23,6 @@ export default function Login() {
       setLoading(false)
     }
   }
-
-  const fillDemo = (email) =>
-    setForm({ login: email, password: 'password' })
 
   return (
     <div className="min-h-screen flex">
@@ -223,58 +212,6 @@ export default function Login() {
               </button>
             </div>
           </div>
-
-          {/* Séparateur */}
-          <div className="my-6 flex items-center gap-3">
-            <div className="flex-1 border-t border-[#cec8be]" />
-            <span className="text-xs text-gray-400 font-medium">Comptes de démonstration</span>
-            <div className="flex-1 border-t border-[#cec8be]" />
-          </div>
-
-          {/* Toggle démo */}
-          <div className="text-center mb-3">
-            <button
-              type="button"
-              onClick={() => setShowDemo(!showDemo)}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1a2a4a]
-                         border-2 border-[#1a2a4a] rounded-xl px-5 py-2.5 hover:bg-[#1a2a4a]
-                         hover:text-white transition-colors tracking-wide uppercase"
-            >
-              {showDemo ? 'Masquer' : 'Accès rapide'}
-              <svg className={`w-3.5 h-3.5 transition-transform ${showDemo ? 'rotate-180' : ''}`}
-                   fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </div>
-
-          {showDemo && (
-            <div className="space-y-2 mt-2">
-              {DEMO_ACCOUNTS.map(({ label, email, role }) => (
-                <button
-                  key={email}
-                  type="button"
-                  onClick={() => fillDemo(email)}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl
-                             border-2 border-[#cec8be] bg-white hover:border-blue-400 hover:bg-blue-50
-                             text-left transition group shadow-sm"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-[#1a2a4a] group-hover:text-blue-700">{label}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{email}</p>
-                  </div>
-                  <span className="text-xs font-medium text-gray-500 bg-gray-100
-                                   group-hover:bg-blue-100 group-hover:text-blue-700
-                                   px-2.5 py-1 rounded-full transition">
-                    {role}
-                  </span>
-                </button>
-              ))}
-              <p className="text-xs text-gray-400 text-center pt-1">
-                Mot de passe : <code className="bg-[#e0d9ce] px-1.5 py-0.5 rounded font-mono">password</code>
-              </p>
-            </div>
-          )}
 
         </div>
       </div>

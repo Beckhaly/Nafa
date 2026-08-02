@@ -7,6 +7,23 @@ Spec source : `Nafa_Spec.docx` v1.0, Avril 2025.
 
 ## 🔧 Corrections & Améliorations Récentes
 
+**2026-08-02** — Ajout: Date de début d'activité + date de début réelle des cotisations mensuelles
+- **Changement**: Les KPI et la matrice de pointage des cotisations mensuelles peuvent désormais être bornés par une date de démarrage, au lieu de considérer chaque mois passé comme dû par défaut
+- **Modifications schéma** (parametres, singleton id=1):
+  * `date_debut_activite DATE NULL` — date réelle de démarrage des activités (distincte de `date_creation`, la date légale d'enregistrement)
+  * `date_debut_cotisations DATE NULL` — date à partir de laquelle les cotisations mensuelles sont dues
+  * `tenir_compte_date_adhesion BOOLEAN DEFAULT 0` — si activé, le seuil par membre = MAX(date_debut_cotisations, date_adhesion du membre) ; sinon le seuil est global pour tous
+  * Colonnes ajoutées via `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` (compatible réexécution sur base existante)
+- **Modifications procédure** `sp_get_monthly_pivot` (02_procedures.sql):
+  * Nouveau statut de cellule `'na'` (mois antérieur au seuil de démarrage) distinct de `'future'` (mois pas encore atteint dans le temps)
+  * Seuil calculé par membre via `GREATEST(date_debut_cotisations, date_adhesion)` quand `tenir_compte_date_adhesion = 1`
+- **Modifications backend**: `ParametreController` — validation des 3 nouveaux champs
+- **Modifications frontend**:
+  * `SettingsPage.jsx` — champ "Date de début d'activité" (onglet Identité), champ "Date de début des cotisations" + case à cocher "Tenir compte de la date d'adhésion par membre" (onglet Finance)
+  * `CotisationsPage.jsx` — statut `na` ajouté à `CELL_STYLE`/`CELL_LABEL`/légende (cellule grisée, non cliquable) ; `computeStats()` exclut les mois `na` du total théorique et du recouvrement
+- **Avantage**: Le théorique et le taux de recouvrement affichés ne comptent plus comme "dettes" des mois antérieurs au vrai début de la collecte des cotisations
+- **Action**: Réexécuter `database/01_schema.sql` et `database/02_procedures.sql` (`php artisan db:seed-schema` ou `./refresh-schema.sh`) pour appliquer le schéma et la procédure en base
+
 **2026-04-24** — Amélioration: KPIs et répartition dépenses par catégorie au tableau de bord
 - **Changement**: Ajout de KPI "Membres" amélioré et section de répartition dépenses par catégorie; suppression des KPIs prêts
 - **Modifications**:

@@ -1105,6 +1105,7 @@ CREATE TABLE IF NOT EXISTS parametres (
     site_web                     VARCHAR(255)      NULL,
     whatsapp_groupe              VARCHAR(255)      NULL,
     date_creation                DATE              NULL,
+    date_debut_activite          DATE              NULL COMMENT 'Date de début d''activité réelle de l''association (peut différer de date_creation)',
     numero_enregistrement        VARCHAR(100)      NULL,
     montant_cotisation_mensuelle DECIMAL(15,2)     NOT NULL DEFAULT 5000.00,
     montant_adhesion             DECIMAL(15,2)     NULL,
@@ -1112,6 +1113,8 @@ CREATE TABLE IF NOT EXISTS parametres (
     plafond_pret                 DECIMAL(15,2)     NULL,
     taux_interet_pret            DECIMAL(5,2)      NULL,
     exercice_courant             SMALLINT UNSIGNED NOT NULL DEFAULT 2026,
+    date_debut_cotisations       DATE              NULL COMMENT 'Date à partir de laquelle les cotisations mensuelles sont dues — mois antérieurs exclus des KPI',
+    tenir_compte_date_adhesion   BOOLEAN           NOT NULL DEFAULT 0 COMMENT 'Si actif, seuil par membre = MAX(date_debut_cotisations, date_adhesion)',
     logo_url                     VARCHAR(255)      NULL,
     reglement_interieur          LONGTEXT          NULL,
     reglement_url                VARCHAR(255)      NULL,
@@ -1122,5 +1125,9 @@ CREATE TABLE IF NOT EXISTS parametres (
     PRIMARY KEY (id),
     CONSTRAINT chk_parametres_singleton CHECK (id = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE parametres ADD COLUMN IF NOT EXISTS date_debut_activite DATE NULL COMMENT 'Date de début d''activité réelle de l''association (peut différer de date_creation)';
+ALTER TABLE parametres ADD COLUMN IF NOT EXISTS date_debut_cotisations DATE NULL COMMENT 'Date à partir de laquelle les cotisations mensuelles sont dues — mois antérieurs exclus des KPI';
+ALTER TABLE parametres ADD COLUMN IF NOT EXISTS tenir_compte_date_adhesion BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Si actif, seuil par membre = MAX(date_debut_cotisations, date_adhesion)';
 
 SET foreign_key_checks = 1;

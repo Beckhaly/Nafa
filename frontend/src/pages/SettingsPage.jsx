@@ -118,6 +118,7 @@ export default function SettingsPage() {
         site_web:                     form.site_web                  || null,
         whatsapp_groupe:              form.whatsapp_groupe           || null,
         date_creation:                form.date_creation             || null,
+        date_debut_activite:          form.date_debut_activite       || null,
         numero_enregistrement:        form.numero_enregistrement     || null,
         montant_cotisation_mensuelle: parseFloat(form.montant_cotisation_mensuelle) || 0,
         montant_adhesion:             form.montant_adhesion ? parseFloat(form.montant_adhesion) : null,
@@ -125,6 +126,8 @@ export default function SettingsPage() {
         plafond_pret:                 form.plafond_pret   ? parseFloat(form.plafond_pret)   : null,
         taux_interet_pret:            form.taux_interet_pret ? parseFloat(form.taux_interet_pret) : null,
         exercice_courant:             parseInt(form.exercice_courant),
+        date_debut_cotisations:       form.date_debut_cotisations    || null,
+        tenir_compte_date_adhesion:   form.tenir_compte_date_adhesion ?? false,
         logo_url:                     form.logo_url                  || null,
         reglement_interieur:          form.reglement_interieur       || null,
         reglement_url:                form.reglement_url             || null,
@@ -227,7 +230,7 @@ export default function SettingsPage() {
                     onChange={set('slogan')} placeholder="ex : Ensemble pour un avenir meilleur" />
                 </Field>
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Date de création">
+                  <Field label="Date de création" hint="Date légale d'enregistrement">
                     <input type="date" className="input" value={form.date_creation ?? ''}
                       onChange={set('date_creation')} />
                   </Field>
@@ -236,6 +239,11 @@ export default function SettingsPage() {
                       onChange={set('numero_enregistrement')} placeholder="ex : RF/GUI/2019/001" />
                   </Field>
                 </div>
+                <Field label="Date de début d'activité"
+                  hint="Date réelle de démarrage des activités de l'association (peut différer de la date de création légale) — sert de référence pour les statistiques">
+                  <input type="date" className="input max-w-xs" value={form.date_debut_activite ?? ''}
+                    onChange={set('date_debut_activite')} />
+                </Field>
               </Section>
             </div>
 
@@ -299,6 +307,20 @@ export default function SettingsPage() {
                 <input className="input" value={form.devise ?? ''}
                   onChange={set('devise')} required maxLength={10} placeholder="FCFA" />
               </Field>
+              <Field label="Date de début des cotisations"
+                hint="Les mois antérieurs à cette date sont exclus de la matrice de pointage et des KPI de recouvrement">
+                <input type="date" className="input" value={form.date_debut_cotisations ?? ''}
+                  onChange={set('date_debut_cotisations')} />
+              </Field>
+              <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                <input type="checkbox" className="w-4 h-4 accent-blue-600"
+                  checked={form.tenir_compte_date_adhesion ?? false}
+                  onChange={(e) => setVal('tenir_compte_date_adhesion', e.target.checked)} />
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">Tenir compte de la date d'adhésion par membre</p>
+                  <p className="text-xs text-gray-500">Pour chaque membre, le point de départ retenu est le plus tardif entre la date ci-dessus et sa date d'adhésion individuelle</p>
+                </div>
+              </label>
             </Section>
 
             <Section title="Prêts" icon="🏦">

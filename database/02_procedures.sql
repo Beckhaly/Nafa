@@ -564,13 +564,22 @@ END$$
 -- =============================================================================
 -- sp_get_monthly_pivot
 -- Matrice de pointage Jan–Déc (cotisations mensuelles uniquement).
--- Valeurs : 'paid' | 'partial' | 'unpaid' | 'future'
+-- Valeurs : 'paid' | 'partial' | 'unpaid' | 'future' | 'na'
+-- 'na' : mois antérieur au seuil de début des cotisations (parametres.date_debut_cotisations,
+--        combiné à la date d'adhésion du membre si tenir_compte_date_adhesion = 1).
 -- =============================================================================
 DROP PROCEDURE IF EXISTS sp_get_monthly_pivot$$
 CREATE PROCEDURE sp_get_monthly_pivot(
     IN p_annee YEAR
 )
 BEGIN
+    DECLARE v_seuil_global   DATE    DEFAULT '1900-01-01';
+    DECLARE v_tenir_adhesion BOOLEAN DEFAULT 0;
+
+    SELECT IFNULL(date_debut_cotisations, '1900-01-01'), IFNULL(tenir_compte_date_adhesion, 0)
+    INTO   v_seuil_global, v_tenir_adhesion
+    FROM   parametres WHERE id = 1 LIMIT 1;
+
     SELECT
         m.id AS member_id,
         m.matricule, m.nom, m.prenom, m.alias,
@@ -578,35 +587,47 @@ BEGIN
         rm.libelle AS role,
 
         CASE WHEN CONCAT(p_annee,'-01') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-01') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=1  THEN c.statut END),'unpaid') END AS jan,
         CASE WHEN CONCAT(p_annee,'-02') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-02') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=2  THEN c.statut END),'unpaid') END AS fev,
         CASE WHEN CONCAT(p_annee,'-03') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-03') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=3  THEN c.statut END),'unpaid') END AS mar,
         CASE WHEN CONCAT(p_annee,'-04') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-04') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=4  THEN c.statut END),'unpaid') END AS avr,
         CASE WHEN CONCAT(p_annee,'-05') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-05') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=5  THEN c.statut END),'unpaid') END AS mai,
         CASE WHEN CONCAT(p_annee,'-06') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-06') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=6  THEN c.statut END),'unpaid') END AS jun,
         CASE WHEN CONCAT(p_annee,'-07') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-07') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=7  THEN c.statut END),'unpaid') END AS jul,
         CASE WHEN CONCAT(p_annee,'-08') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-08') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=8  THEN c.statut END),'unpaid') END AS aou,
         CASE WHEN CONCAT(p_annee,'-09') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-09') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=9  THEN c.statut END),'unpaid') END AS sep,
         CASE WHEN CONCAT(p_annee,'-10') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-10') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=10 THEN c.statut END),'unpaid') END AS oct,
         CASE WHEN CONCAT(p_annee,'-11') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-11') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=11 THEN c.statut END),'unpaid') END AS nov,
         CASE WHEN CONCAT(p_annee,'-12') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             WHEN CONCAT(p_annee,'-12') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
              ELSE COALESCE(MAX(CASE WHEN c.mois=12 THEN c.statut END),'unpaid') END AS dec_
 
     FROM members m
     JOIN roles_membres rm ON rm.id = m.role_id
     LEFT JOIN contributions c ON c.member_id = m.id AND c.annee = p_annee
     WHERE m.statut = 'actif'
-    GROUP BY m.id, m.matricule, m.nom, m.prenom, m.alias, rm.libelle
+    GROUP BY m.id, m.matricule, m.nom, m.prenom, m.alias, m.date_adhesion, rm.libelle
     ORDER BY rm.ordre, m.matricule;
 END$$
 

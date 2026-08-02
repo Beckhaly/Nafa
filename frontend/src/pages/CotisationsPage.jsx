@@ -24,7 +24,7 @@ const STATUT_BADGE = {
   partial: 'badge bg-yellow-100 text-yellow-700',
   unpaid:  'badge bg-red-100 text-red-600',
 }
-const STATUT_LABEL = { paid: 'Payé', partial: 'Partiel', unpaid: 'Impayé' }
+const STATUT_LABEL = { paid: 'Payé', partial: 'Partiel', unpaid: 'Impayé', future: 'À venir', na: 'Avant début des cotisations' }
 
 function fmt(n) {
   return n == null ? '—' : Number(n).toLocaleString('fr-FR')
@@ -70,8 +70,9 @@ const CELL_STYLE = {
   partial: 'bg-yellow-400 text-gray-900',
   unpaid:  'bg-red-500 text-white hover:bg-red-600',
   future:  'bg-gray-100 text-gray-400',
+  na:      'bg-gray-50 text-gray-300',
 }
-const CELL_LABEL = { paid: '✓', partial: '½', unpaid: '✗', future: '·' }
+const CELL_LABEL = { paid: '✓', partial: '½', unpaid: '✗', future: '·', na: '—' }
 
 function MensuelTab() {
   const { settings } = useSettings()
@@ -138,7 +139,7 @@ function MensuelTab() {
       nbMembers++
       MONTH_KEYS.forEach((key) => {
         const statut = member[key]
-        if (statut && statut !== 'future') {
+        if (statut && statut !== 'future' && statut !== 'na') {
           totalTheorique += montantRef
           if (statut === 'paid' || statut === 'partial') totalPaye += montantRef
           if (statut === 'paid') totalPayments++
@@ -210,7 +211,8 @@ function MensuelTab() {
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
         {[['paid','bg-green-500','Payé'],['partial','bg-yellow-400','Partiel'],
-          ['unpaid','bg-red-500','Impayé'],['future','bg-gray-200','À venir']].map(([k,c,l]) => (
+          ['unpaid','bg-red-500','Impayé'],['future','bg-gray-200','À venir'],
+          ['na','bg-gray-50 border border-gray-200','Avant début des cotisations']].map(([k,c,l]) => (
           <span key={k} className="flex items-center gap-1.5">
             <span className={`inline-block w-3.5 h-3.5 rounded ${c}`} />
             {l}

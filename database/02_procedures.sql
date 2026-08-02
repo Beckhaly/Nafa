@@ -575,7 +575,10 @@ END$$
 -- =============================================================================
 DROP PROCEDURE IF EXISTS sp_get_monthly_pivot$$
 CREATE PROCEDURE sp_get_monthly_pivot(
-    IN p_annee YEAR
+    -- SMALLINT et non YEAR : le type YEAR comme paramètre d'une procédure utilisé dans
+    -- une jointure combinée à GROUP BY + agrégat produit des résultats incorrects sur
+    -- MySQL 8.0 (confirmé en prod — cause du bug "paiement enregistré mais case reste rouge").
+    IN p_annee SMALLINT UNSIGNED
 )
 BEGIN
     DECLARE v_seuil_global   DATE    DEFAULT '1900-01-01';

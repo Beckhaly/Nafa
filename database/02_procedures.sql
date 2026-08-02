@@ -198,6 +198,7 @@ BEGIN
     DECLARE v_nouveau_solde DECIMAL(15,2);
     DECLARE v_seq           INT;
     DECLARE v_member_ok     INT DEFAULT 0;
+    DECLARE v_nom_complet   VARCHAR(200);
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -214,7 +215,8 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Mois invalide (1-12)';
     END IF;
 
-    SELECT COUNT(*) INTO v_member_ok FROM members WHERE id = p_member_id AND statut = 'actif';
+    SELECT COUNT(*), MAX(CONCAT(nom, ' ', prenom)) INTO v_member_ok, v_nom_complet
+    FROM members WHERE id = p_member_id AND statut = 'actif';
     IF v_member_ok = 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Membre introuvable ou inactif';
     END IF;
@@ -267,7 +269,7 @@ BEGIN
         (exercice, type, type_recette, categorie_id, montant, solde_apres, reference_id, libelle, created_by)
     VALUES
         (p_annee, 'credit', 'cotisation_mensuelle', NULL, p_montant, v_nouveau_solde, v_contrib_id,
-         CONCAT('Cotisation ', p_annee, '-', LPAD(p_mois, 2, '0'), ' — ', o_reference_recu),
+         CONCAT('Cotisation ', p_annee, '-', LPAD(p_mois, 2, '0'), ' — ', v_nom_complet, ' — ', o_reference_recu),
          p_user_id);
 
     INSERT INTO audit_log (action, table_name, record_id, montant, user_id, details)
@@ -303,6 +305,7 @@ BEGIN
     DECLARE v_nouveau_solde DECIMAL(15,2);
     DECLARE v_exercice      YEAR;
     DECLARE v_seq           INT;
+    DECLARE v_nom_complet   VARCHAR(200);
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -327,6 +330,8 @@ BEGIN
     IF v_member_id IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cotisation exceptionnelle introuvable';
     END IF;
+
+    SELECT CONCAT(nom, ' ', prenom) INTO v_nom_complet FROM members WHERE id = v_member_id;
 
     SET v_nouveau_paye = v_montant_paye + p_montant;
     SET v_exercice     = YEAR(CURDATE());
@@ -363,7 +368,7 @@ BEGIN
         (exercice, type, type_recette, categorie_id, montant, solde_apres, reference_id, libelle, created_by)
     VALUES
         (v_exercice, 'credit', 'cotisation_exceptionnelle', NULL, p_montant, v_nouveau_solde,
-         p_cex_id, CONCAT('Cot. exceptionnelle — ', o_reference_recu), p_user_id);
+         p_cex_id, CONCAT('Cot. exceptionnelle — ', v_nom_complet, ' — ', o_reference_recu), p_user_id);
 
     INSERT INTO audit_log (action, table_name, record_id, montant, user_id, details)
     VALUES ('PAIEMENT_COTISATION_EXCEPTIONNELLE', 'cotisations_exceptionnelles', p_cex_id,
@@ -654,6 +659,7 @@ BEGIN
     DECLARE v_annee         YEAR;
     DECLARE v_nouveau_solde DECIMAL(15,2);
     DECLARE v_seq           INT;
+    DECLARE v_nom_complet   VARCHAR(200);
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -668,6 +674,10 @@ BEGIN
     END IF;
     IF p_member_id IS NULL AND (p_donateur_nom IS NULL OR TRIM(p_donateur_nom) = '') THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Nom du donateur requis si non-membre';
+    END IF;
+
+    IF p_member_id IS NOT NULL THEN
+        SELECT CONCAT(nom, ' ', prenom) INTO v_nom_complet FROM members WHERE id = p_member_id;
     END IF;
 
     SET v_annee = YEAR(IFNULL(p_date_don, CURDATE()));
@@ -697,7 +707,7 @@ BEGIN
         (exercice, type, type_recette, categorie_id, montant, solde_apres, reference_id, libelle, created_by)
     VALUES
         (v_annee, 'credit', 'don', NULL, p_montant, v_nouveau_solde, o_don_id,
-         CONCAT('Don — ', IFNULL(p_donateur_nom, CONCAT('Membre #', p_member_id)),
+         CONCAT('Don — ', IFNULL(p_donateur_nom, v_nom_complet),
                 ' — ', o_reference_recu),
          p_user_id);
 

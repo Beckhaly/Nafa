@@ -160,7 +160,26 @@
       "Bash(curl -s http://localhost:5173)",
       "Bash(where mysqld *)",
       "Read(//c/Program Files \\(x86\\)/MySQL/MySQL Server 8.0/bin/**)",
-      "Read(//c/MySQL/bin/**)"
+      "Read(//c/MySQL/bin/**)",
+      "Bash(docker --version)",
+      "Bash(docker run *)",
+      "Bash(netstat -ano)",
+      "Bash(wmic process *)",
+      "Bash(taskkill /F /IM \"php.exe\")",
+      "Bash(taskkill /F /IM \"node.exe\")",
+      "PowerShell(Get-Process -Name \"php\",\"node\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(\"Processus arr�t�s\")",
+      "Bash(curl -s http://localhost:8000)",
+      "Bash(awk '{print \"   Port \" $2}')",
+      "Bash(python3 -c \"import markdown; print\\('markdown disponible'\\)\")",
+      "Bash(python3 create_pdf.py)",
+      "Bash(python3 -c \"import weasyprint; print\\('weasyprint available'\\)\")",
+      "Bash(python3 -c \"import reportlab; print\\('reportlab available'\\)\")",
+      "Bash(python3 -m pip install reportlab --quiet)",
+      "Bash(python3 generate_pdf.py)",
+      "Bash(python3 -m pip install markdown --quiet)",
+      "Bash(python3 -m pip install fpdf2 --quiet)"
     ]
   }
 }

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAFA — Guide Utilisateur Complet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #000;
+            background: white;
+            padding: 20mm;
+            max-width: 210mm;
+            margin: 0 auto;
+            font-size: 11pt;
+        }
+        h1 { font-size: 28pt; margin: 20mm 0 10mm 0; color: #000; page-break-after: avoid; }
+        h2 { font-size: 18pt; margin: 15mm 0 8mm 0; color: #000; border-bottom: 2pt solid #000; padding-bottom: 5mm; page-break-after: avoid; }
+        h3 { font-size: 14pt; margin: 10mm 0 5mm 0; color: #000; page-break-after: avoid; }
+        h4 { font-size: 12pt; margin: 8mm 0 4mm 0; color: #000; page-break-after: avoid; }
+        p { margin: 3mm 0; }
+        ul, ol { margin: 5mm 0 5mm 10mm; }
+        li { margin: 2mm 0; }
+        table { width: 100%; border-collapse: collapse; margin: 8mm 0; page-break-inside: avoid; font-size: 10pt; }
+        table th, table td { border: 1pt solid #000; padding: 4mm; text-align: left; }
+        table th { background: #e6e6e6; font-weight: bold; }
+        code { font-family: 'Courier New', monospace; background: #f5f5f5; padding: 1mm 2mm; }
+        pre {
+            background: #f5f5f5;
+            padding: 4mm;
+            border: 1pt solid #999;
+            margin: 5mm 0;
+            overflow-x: auto;
+            page-break-inside: avoid;
+            font-size: 9pt;
+            font-family: 'Courier New', monospace;
+        }
+        blockquote {
+            border-left: 3pt solid #000;
+            padding-left: 5mm;
+            margin: 5mm 0;
+            color: #333;
+            font-size: 10pt;
+        }
+        hr { border: none; border-top: 1pt solid #999; margin: 10mm 0; }
+        .toc { margin: 10mm 0; padding: 5mm; background: #f9f9f9; border: 1pt solid #ddd; page-break-inside: avoid; }
+        @media print {
+            body { padding: 10mm; margin: 0; }
+            h2 { page-break-before: always; }
+            table { page-break-inside: avoid; }
+            blockquote { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+<h1>📖 NAFA — Guide Utilisateur</h1>
+<p><strong>Version:</strong> 1.0 | <strong>Date:</strong> 2026-07-01</p>
+<hr>
+
+# 📖 NAFA — Guide Utilisateur Complet
+
+## Table des matières
+1. [Démarrage rapide](#-démarrage-rapide)
+2. [Connexion](#-connexion)
+3. [Tableau de bord](#-tableau-de-bord)
+4. [Gestion des membres](#-gestion-des-membres)
+5. [Gestion des cotisations](#-gestion-des-cotisations)
+6. [Gestion des prêts](#-gestion-des-prêts)
+7. [Gestion des événements](#-gestion-des-événements)
+8. [Gestion des annonces](#-gestion-des-annonces)
+9. [Rapports & Statistiques](#-rapports--statistiques)
+10. [Paramètres](#-paramètres)
+11. [FAQ & Dépannage](#-faq--dépannage)
+
+---
+
+## 🚀 Démarrage rapide
+
+### Accéder à l'application
+
+**En ligne** (Production):
+```
+https://votre-domaine.com
+```
+
+**En local** (Développement):
+```
+http://localhost:5173
+```
+
+### Première connexion
+
+1. Ouvrez l'application dans votre navigateur
+2. Entrez vos identifiants:
+   - **Email**: Votre adresse email
+   - **Mot de passe**: Votre mot de passe fourni
+3. Cliquez **"Se connecter"**
+
+> ⚠️ **Important**: Changez votre mot de passe lors de la première connexion!
+
+---
+
+## 🔐 Connexion
+
+### Écran de connexion
+
+| Champ | Description |
+|-------|-------------|
+| **Email** | Votre adresse email enregistrée |
+| **Mot de passe** | Votre mot de passe |
+
+### Actions disponibles
+
+- **Se connecter**: Accéder à votre compte
+- **Mot de passe oublié?**: Réinitialiser votre mot de passe
+
+### Après connexion
+
+- ✅ Vous êtes redirigé vers le **Tableau de bord**
+- 🔒 Votre session reste active pendant 2 heures
+- 🚪 Cliquez votre nom en haut à droite pour vous **déconnecter**
+
+---
+
+## 📊 Tableau de bord
+
+Le tableau de bord affiche un résumé de l'association en temps réel.
+
+### 🔢 Indicateurs clés (KPIs)
+
+| Indicateur | Description |
+|-----------|-------------|
+| **💰 Solde caisse** | Solde financier actuel de l'association |
+| **👥 Membres actifs** | Nombre de membres actuellement actifs / Total |
+| **📊 Taux recouvrement** | % des cotisations mensuelles payées ce mois |
+| **📈 Créances en souffrance** | Montant total impayé (cotisations + CEX) |
+| **💵 Dépenses par catégorie** | Répartition des dépenses par type |
+
+### 📈 Graphiques
+
+- **Recettes vs Dépenses**: Comparaison mensuelle des entrées/sorties
+- **Répartition dépenses**: Visualisation par catégorie
+
+### 🎯 Actions rapides
+
+- ➕ Ajouter un membre
+- 📝 Enregistrer une cotisation
+- 🎉 Créer un événement
+- 📢 Publier une annonce
+
+---
+
+## 👥 Gestion des membres
+
+### Accès
+
+Menu latéral → **Membres**
+
+### 📋 Liste des membres
+
+#### Affichage
+
+- **Tableau** avec colonnes: Nom, Rôle, Téléphone, Statut
+- **Recherche**: Cherchez par nom, email ou téléphone
+- **Filtres**: Par statut (Actif, Inactif, Suspendu)
+
+#### Actions sur un membre
+
+| Action | Description |
+|--------|-------------|
+| **Clic sur la ligne** | Affiche le détail du membre |
+| **Modifier** | Éditer les informations |
+| **Voir la fiche** | Télécharger la carte de membre |
+| **Supprimer** | Supprimer le profil (si aucune dette) |
+
+### ➕ Ajouter un membre
+
+1. Cliquez **"+ Ajouter membre"**
+2. Remplissez le formulaire:
+
+| Champ | Type | Obligatoire |
+|-------|------|-----------|
+| **Nom** | Texte | ✅ |
+| **Prénom** | Texte | ✅ |
+| **Alias** (surnom) | Texte | ❌ |
+| **Téléphone** | Téléphone | ✅ |
+| **Email** | Email | ❌ |
+| **Date d'adhésion** | Date | ✅ |
+| **Rôle** | Sélecteur | ✅ (Défaut: Membre) |
+| **Lieu d'habitation** | Texte | ❌ |
+| **Emploi** | Texte | ❌ |
+| **Commentaires** | Texte libre | ❌ |
+
+3. Cliquez **"Enregistrer"**
+
+**Résultat**: Un **matricule** est généré automatiquement (format: `MBR-2026-001`)
+
+### ✏️ Modifier un membre
+
+1. Cliquez sur le membre
+2. Cliquez **"Modifier"**
+3. Changez les informations
+4. Cliquez **"Enregistrer"**
+
+### 👤 Détail du membre
+
+Affiche:
+- Informations personnelles
+- Rôle et statut
+- Historique des cotisations
+- Prêts actifs (s'il y a)
+- Événements auxquels il participe
+- Carte de membre (à télécharger)
+
+---
+
+## 💰 Gestion des cotisations
+
+### Accès
+
+Menu latéral → **Cotisations**
+
+### 📅 Onglet "Mensuelles"
+
+La **matrice de cotisations** affiche tous les membres et leurs paiements par mois/année.
+
+#### Codes couleur
+
+| Couleur | Signification |
+|---------|---------------|
+| 🟢 **Vert** | Payé (100%) |
+| 🟡 **Jaune** | Partiel (< 100%) |
+| 🔴 **Rouge** | Impayé (0%) |
+| ⚪ **Gris** | Mois futur |
+
+#### Actions sur une cellule
+
+- **Cliquez la cellule**: Ouvre le formulaire de paiement
+- **Saisissez le montant**: Montant versé
+- **Sélectionnez la date**: Date du paiement
+- **Cliquez "Enregistrer"**: Crée un reçu automatiquement
+
+#### 📊 Statistiques mensuelles
+
+Affichées en haut:
+- **Membres actifs**: Nombre dans la matrice
+- **Taux recouvrement**: % du total payé
+- **Total théorique**: Somme attendue
+- **Total payé**: Somme reçue
+- **Reste dû**: Différence
+
+### 🎟️ Onglet "Exceptionnelles"
+
+Gestion des cotisations ponctuelles (fêtes, urgences, etc).
+
+#### Créer un appel de fonds
+
+1. Cliquez **"+ Nouvel appel"**
+2. Remplissez:
+
+| Champ | Description |
+|-------|-------------|
+| **Libellé** | Nom de l'appel (ex: "Fête de Noël") |
+| **Source** | Événement ou Annonce liée (optionnel) |
+| **Sélectionnez la source** | Choisissez l'événement/annonce |
+| **Montant par membre** | Cotisation individuelle |
+| **Date limite** | Échéance de paiement |
+
+3. Cliquez **"Créer"**
+
+**Résultat**: L'appel est créé pour **tous les membres actifs**
+
+#### Enregistrer un paiement CEX
+
+1. Dans l'appel, cliquez sur le membre
+2. Entrez le montant payé
+3. Cliquez **"Enregistrer paiement"**
+
+#### 📊 Statistiques CEX
+
+- **Appels lancés**: Total des appels
+- **Taux recouvrement**: % du montant dû payé
+- **Total dû**: Somme totale demandée
+- **Total payé**: Somme reçue
+- **Reste dû**: Différence (en rouge)
+
+---
+
+## 💳 Gestion des prêts
+
+### Accès
+
+Menu latéral → **Prêts**
+
+### 📋 Liste des prêts
+
+#### Affichage
+
+- **Cartes** avec: Membre, Montant, Durée, Statut
+- **Barre de progression**: Pourcentage remboursé
+- **Statuts**: Actif 💳 | En retard ⏰ | Soldé ✅
+
+#### Actions
+
+| Action | Description |
+|--------|-------------|
+| **Cliquez la carte** | Affiche le tableau d'amortissement |
+| **Enregistrer paiement** | Enregistre une mensualité |
+| **Clôturer** | Marque le prêt comme soldé |
+
+### ➕ Créer un prêt
+
+1. Cliquez **"+ Nouveau prêt"**
+2. Remplissez:
+
+| Champ | Description |
+|-------|-------------|
+| **Membre** | Qui emprunte (searchable) |
+| **Montant** | Capital emprunté |
+| **Durée (mois)** | Nombre de mensualités |
+| **Taux d'intérêt (%)** | Taux annuel (optionnel) |
+| **Date de début** | Première échéance |
+
+3. Cliquez **"Créer"**
+
+**Résultat**: Le tableau d'amortissement est généré automatiquement
+
+### 📊 Tableau d'amortissement
+
+Affiche pour chaque mois:
+- **N° Échéance**
+- **Date d'échéance**
+- **Capital** dû ce mois
+- **Intérêts** (si applicable)
+- **Total** à payer
+- **Statut**: Pending ⏳ | Paid ✅ | Late ⏰
+
+#### Enregistrer un paiement
+
+1. Cliquez sur l'échéance
+2. Entrez le montant payé
+3. Entrez la date de paiement
+4. Cliquez **"Enregistrer"**
+
+Le statut passe à **✅ Paid**
+
+---
+
+## 🎉 Gestion des événements
+
+### Accès
+
+Menu latéral → **Événements**
+
+### 📋 Liste des événements
+
+#### Affichage
+
+- **Grille** de cartes événements
+- **Recherche**: Par titre, type ou lieu
+- **Tri**: Par date ou statut
+
+#### Informations par carte
+
+- 📅 Titre et type
+- 🗓️ Dates (début → fin)
+- 📍 Lieu (si renseigné)
+- 🏷️ Statut: Planifié 📋 | En cours 🔴 | Terminé ✅ | Annulé ❌
+
+### ➕ Créer un événement
+
+1. Cliquez **"+ Nouvel événement"**
+2. Remplissez:
+
+| Champ | Description |
+|-------|-------------|
+| **Type** | Assemblée, Réunion, Formation, etc. |
+| **Titre** | Nom de l'événement |
+| **Date début** | Date et heure de début |
+| **Date fin** | Optionnel (si plusieurs jours) |
+| **Lieu** | Adresse ou description |
+| **Description** | Détails supplémentaires |
+| **Budget CEX** | Montant par membre si cotisation (optionnel) |
+
+3. Cliquez **"Créer"**
+
+### 👀 Détail événement
+
+Affiche:
+- **Type** et **Statut**
+- **Dates** de début/fin
+- **Lieu** et **Description**
+- **Budget CEX** (s'il y a)
+- **Participants** avec leurs statuts:
+  - 📝 Inscrit
+  - 👍 Présent
+  - ❌ Absent
+- **Bouton partage** WhatsApp/SMS
+
+### 💬 Partager l'événement
+
+Si **WhatsApp partagé** est activé:
+
+1. Cliquez **"💬 Partager au groupe"** (ou "sur WhatsApp")
+2. Message pré-généré avec:
+   - Titre et type
+   - Dates et lieu
+   - Description
+   - Budget si applicable
+3. Message copié → ouvrez WhatsApp → collez
+
+---
+
+## 📢 Gestion des annonces
+
+### Accès
+
+Menu latéral → **Annonces**
+
+### 📋 Liste des annonces
+
+#### Affichage
+
+- **Filtrées** par statut: Brouillon 📝 | Publié ✅ | Archivé 📦
+- **Recherche** et **tri** disponibles
+
+#### Informations
+
+- Type (Mariage, Décès, Naissance, etc.)
+- Membre concerné
+- Statut publication
+
+### ✏️ Créer/Modifier une annonce
+
+1. Cliquez **"+ Nouvelle annonce"** (ou modifiez une existante)
+2. Remplissez:
+
+| Champ | Description |
+|-------|-------------|
+| **Type** | Type d'annonce |
+| **Membre concerné** | Qui l'annonce concerne (optionnel) |
+| **Titre** | Sujet de l'annonce |
+| **Contenu** | Message SMS/WhatsApp (max 160 car. recommandé) |
+| **Date événement** | Quand c'est (optionnel) |
+| **Budget CEX** | Montant si cotisation exceptionnelle (optionnel) |
+
+3. Cliquez **"Enregistrer en brouillon"** ou **"Publier"**
+
+### 📤 Publier une annonce
+
+1. Ouvrez l'annonce en **Brouillon**
+2. Cliquez **"Publier"**
+3. Sélectionnez les **canaux**:
+   - ☑️ SMS
+   - ☑️ WhatsApp
+   - ☑️ Les deux
+
+4. Sélectionnez les **destinataires**:
+   - **Tous les actifs**: Envoie à tous les membres actifs
+   - **Sélection**: Choisissez manuellement
+
+5. Cliquez **"Publier"**
+
+**Résultat**: Les SMS/WhatsApp sont envoyés immédiatement
+
+### 📊 Suivi de publication
+
+Affiche pour chaque canal/destinataire:
+- ⏳ **En attente**: Message en file d'attente
+- ✅ **Envoyé**: Livré avec succès
+- ❌ **Échec**: Erreur d'envoi
+
+---
+
+## 📈 Rapports & Statistiques
+
+### Accès
+
+Menu latéral → **Rapports**
+
+### 📊 Matrice de cotisations
+
+Vue complète des cotisations mensuelles par membre et par mois.
+
+#### Utilisation
+
+- **Mois/Année**: Changez la période
+- **Couleurs**: Vert (payé) | Jaune (partiel) | Rouge (impayé) | Gris (futur)
+- **CSV**: Téléchargez en Excel
+
+### 📉 Graphiques
+
+- **Recettes vs Dépenses**: Comparaison mois par mois
+- **Évolution solde**: Tendance sur l'année
+
+### 📋 Créances en souffrance
+
+Liste des montants impayés:
+- Cotisations mensuelles en retard
+- Cotisations exceptionnelles en retard
+- Prêts en retard
+
+### 💾 Exports
+
+- **Télécharger CSV**: Pour utiliser dans Excel
+- **Imprimer**: Format PDF pour rapports
+
+---
+
+## ⚙️ Paramètres
+
+### Accès
+
+Menu latéral → **Paramètres** (icône engrenage)
+
+### 🏢 Onglet "Général"
+
+Configuration de l'association:
+
+| Paramètre | Description |
+|-----------|-------------|
+| **Nom association** | Nom officiel |
+| **Slogan** | Devise ou slogan |
+| **Adresse** | Siège social |
+| **Téléphone** | Contact principal |
+| **Email** | Contact email |
+| **Site web** | URL du site |
+| **Date création** | Quand l'association a été créée |
+| **Exercice courant** | Année fiscale actuelle |
+| **Devise** | Monnaie (ex: FCFA) |
+
+### 💰 Onglet "Finances"
+
+Configuration financière:
+
+| Paramètre | Description |
+|-----------|-------------|
+| **Cotisation mensuelle** | Montant standar par membre/mois |
+| **Montant adhésion** | Frais d'inscription (optionnel) |
+| **Plafond prêt** | Maximum qu'un membre peut emprunter |
+| **Taux intérêt prêt** | Intérêt annuel sur les prêts |
+
+### 🚀 Onglet "Diffusion"
+
+Configuration SMS/WhatsApp:
+
+| Paramètre | Description |
+|-----------|-------------|
+| **Activer SMS** | ☑️ Oui / ❌ Non |
+| **Activer WhatsApp** | ☑️ Oui / ❌ Non |
+| **Partage WhatsApp** | ☑️ Oui / ❌ Non (pour événements) |
+| **URL groupe WhatsApp** | Lien direct au groupe |
+
+### 🎨 Onglet "Apparence"
+
+Personnalisation visuelle:
+
+| Paramètre | Description |
+|-----------|-------------|
+| **Logo** | Uploader le logo de l'association |
+| **Couleur primaire** | Couleur principale de l'interface |
+| **Règlement intérieur** | Uploader un PDF du règlement |
+
+### 💾 Sauvegarder
+
+Tous les changements se sauvegardent automatiquement. ✅
+
+---
+
+## 📞 FAQ & Dépannage
+
+### ❓ Questions fréquentes
+
+**Q: Comment réinitialiser un mot de passe?**  
+R: Cliquez "Mot de passe oublié?" sur la page de connexion. Un email de réinitialisation sera envoyé.
+
+**Q: Un membre peut-il voir les données des autres?**  
+R: Non. Les membres voir seulement leurs propres données. Les administrateurs voient tout.
+
+**Q: Comment supprimer un événement?**  
+R: Vous ne pouvez pas le supprimer, mais vous pouvez le **marquer comme "Annulé"**.
+
+**Q: Où trouver les reçus de cotisation?**  
+R: Les reçus sont générés automatiquement et affichés lors du paiement (format: `REC-2026-01-00001`).
+
+**Q: Peut-on modifier une cotisation enregistrée?**  
+R: Non. Pour corriger, créez une nouvelle entrée avec le montant correct.
+
+**Q: Comment ajouter un utilisateur administrateur?**  
+R: Allez dans **Paramètres** → **Utilisateurs** (si vous êtes admin). Seul l'admin peut faire cela.
+
+**Q: WhatsApp ne fonctionne pas, pourquoi?**  
+R: Vérifiez dans **Paramètres** → **Diffusion** que "Activer WhatsApp" est ☑️. Sinon, contactez l'admin.
+
+### 🔧 Dépannage
+
+**Problème**: "Erreur à la sauvegarde"
+- Solution: Vérifiez votre connexion Internet et réessayez
+
+**Problème**: "Le membre n'apparaît pas après création"
+- Solution: Rafraîchissez la page (Ctrl+R ou Cmd+R)
+
+**Problème**: "Je ne peux pas enregistrer un paiement"
+- Solution: Vérifiez que la cotisation existe pour ce mois
+
+**Problème**: "Le SMS n'a pas été envoyé"
+- Solution: Vérifiez le numéro de téléphone du membre (format correct?)
+
+**Problème**: "L'application est lente"
+- Solution: Videz le cache de votre navigateur (Ctrl+Shift+Delete)
+
+### 📧 Contacter le support
+
+Si vous avez un problème non résolu:
+
+1. **Notez les détails**:
+   - Que faisiez-vous?
+   - Quel message d'erreur?
+   - Quand c'est arrivé?
+
+2. **Contactez**:
+   - Email: L'adresse email de support fournie par votre administrateur
+   - Téléphone: Numéro de contact fourni par votre administrateur
+
+---
+
+## 🎓 Bonnes pratiques
+
+### ✅ À FAIRE
+
+✓ Enregistrer les cotisations **chaque mois**  
+✓ Archiver les **anciennes annonces**  
+✓ Faire des **backups réguliers**  
+✓ Tenir à jour les **numéros de téléphone**  
+✓ Documenter les **décisions en notes**  
+✓ Vérifier les **discordances** mensuelles  
+
+### ❌ À ÉVITER
+
+✗ Partager votre **mot de passe**  
+✗ Publier des **annonces fausses**  
+✗ Modifier des **paiements vérifiés**  
+✗ Laisser des données **incomplètes**  
+✗ Oublier les **sauvegardes**  
+
+---
+
+## 📚 Ressources supplémentaires
+
+- **Documentation complète**: Consultez la documentation en ligne
+- **Vidéo tutorielle**: Liens vers les vidéos d'aide
+- **Webinaire**: Formations en direct (dates à vérifier)
+- **Community**: Forum d'entraide
+
+---
+
+## 📞 Informations de contact
+
+Contactez votre administrateur pour obtenir les coordonnées de support appropriées selon votre besoin:
+- Support technique
+- Facturation
+- Compte utilisateur
+
+---
+
+**Version du guide**: 1.0  
+**Dernière mise à jour**: 2026-07-01  
+**Application**: Nafa v1.0
+
+📖 **Pour plus d'aide, consultez le menu "?" en haut de l'application.**
+
+
+<hr>
+<p style="margin-top: 20mm; text-align: center; color: #999; font-size: 9pt;">
+    Document généré automatiquement — Pour plus d'informations, consultez la documentation complète
+</p>
+</body>
+</html>

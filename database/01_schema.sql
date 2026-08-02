@@ -1126,8 +1126,8 @@ CREATE TABLE IF NOT EXISTS parametres (
     CONSTRAINT chk_parametres_singleton CHECK (id = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-ALTER TABLE parametres ADD COLUMN IF NOT EXISTS date_debut_activite DATE NULL COMMENT 'Date de début d''activité réelle de l''association (peut différer de date_creation)';
-ALTER TABLE parametres ADD COLUMN IF NOT EXISTS date_debut_cotisations DATE NULL COMMENT 'Date à partir de laquelle les cotisations mensuelles sont dues — mois antérieurs exclus des KPI';
-ALTER TABLE parametres ADD COLUMN IF NOT EXISTS tenir_compte_date_adhesion BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Si actif, seuil par membre = MAX(date_debut_cotisations, date_adhesion)';
+ALTER TABLE parametres ADD COLUMN date_debut_activite DATE NULL COMMENT 'Date de début d''activité réelle de l''association (peut différer de date_creation)';
+ALTER TABLE parametres ADD COLUMN date_debut_cotisations DATE NULL COMMENT 'Date à partir de laquelle les cotisations mensuelles sont dues — mois antérieurs exclus des KPI';
+ALTER TABLE parametres ADD COLUMN tenir_compte_date_adhesion BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Si actif, seuil par membre = MAX(date_debut_cotisations, date_adhesion)';
 
 SET foreign_key_checks = 1;

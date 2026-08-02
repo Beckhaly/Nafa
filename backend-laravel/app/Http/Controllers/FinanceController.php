@@ -9,6 +9,7 @@ use App\Http\Requests\CreateCotisationExceptionnelleRequest;
 use App\Http\Requests\PayCotisationExceptionnelleRequest;
 use App\Http\Requests\RecordDonRequest;
 use App\Http\Requests\RecordDepenseRequest;
+use App\Http\Requests\AnnulerPaiementRequest;
 
 class FinanceController extends Controller
 {
@@ -201,9 +202,11 @@ class FinanceController extends Controller
     {
         $query = DB::table('caisse_mouvements')
             ->join('categories_depenses', 'categories_depenses.id', '=', 'caisse_mouvements.categorie_id', 'left')
+            ->join('users AS annulateur', 'annulateur.id', '=', 'caisse_mouvements.annule_par', 'left')
             ->select(
                 'caisse_mouvements.*',
-                'categories_depenses.libelle AS categorie_libelle'
+                'categories_depenses.libelle AS categorie_libelle',
+                'annulateur.name AS annule_par_nom'
             )
             ->where('caisse_mouvements.exercice', $exercice);
 
@@ -214,5 +217,21 @@ class FinanceController extends Controller
         return response()->json(
             $query->orderByDesc('caisse_mouvements.created_at')->get()
         );
+    }
+
+    public function annulerPaiement(AnnulerPaiementRequest $request, int $id)
+    {
+        DB::statement(
+            'CALL sp_annuler_paiement(?,?,?,@msg)',
+            [$id, $request->validated('motif'), $request->user()->id]
+        );
+
+        $out = DB::selectOne('SELECT @msg AS message');
+
+        if (! str_starts_with($out->message ?? '', 'OK')) {
+            return response()->json(['message' => $out->message], 422);
+        }
+
+        return response()->json(['message' => $out->message]);
     }
 }

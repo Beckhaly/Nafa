@@ -382,6 +382,107 @@ END$$
 
 
 -- =============================================================================
+-- sp_annuler_paiement
+-- Annule un paiement déjà enregistré (cotisation mensuelle, exceptionnelle ou don) :
+--   1. Marque le mouvement de caisse comme annulé (conservé pour traçabilité)
+--   2. Débite la caisse du montant annulé
+--   3. Répercute la baisse sur la ligne source (contributions / cotisations_exceptionnelles) :
+--      recalcule montant_paye et statut ; remet à zéro date_paiement/reference_recu
+--      si le montant payé retombe à 0. Les dons n'ont pas d'état à recalculer.
+-- Restreint aux rôles admin/trésorier côté application (middleware).
+-- =============================================================================
+DROP PROCEDURE IF EXISTS sp_annuler_paiement$$
+CREATE PROCEDURE sp_annuler_paiement(
+    IN  p_mouvement_id BIGINT UNSIGNED,
+    IN  p_motif        VARCHAR(255),
+    IN  p_user_id      BIGINT UNSIGNED,
+    OUT o_message      VARCHAR(255)
+)
+BEGIN
+    DECLARE v_type          VARCHAR(10);
+    DECLARE v_type_recette  VARCHAR(30);
+    DECLARE v_reference_id  BIGINT UNSIGNED;
+    DECLARE v_montant       DECIMAL(15,2);
+    DECLARE v_exercice      SMALLINT UNSIGNED;
+    DECLARE v_annule        BOOLEAN;
+    DECLARE v_nouveau_solde DECIMAL(15,2);
+    DECLARE v_montant_paye  DECIMAL(15,2);
+    DECLARE v_montant_du    DECIMAL(15,2);
+    DECLARE v_nouveau_paye  DECIMAL(15,2);
+    DECLARE v_nouveau_statut VARCHAR(20);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        GET DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
+    END;
+
+    SELECT type, type_recette, reference_id, montant, exercice, annule
+    INTO   v_type, v_type_recette, v_reference_id, v_montant, v_exercice, v_annule
+    FROM   caisse_mouvements
+    WHERE  id = p_mouvement_id
+    FOR UPDATE;
+
+    IF v_type IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Mouvement introuvable';
+    END IF;
+    IF v_type != 'credit' OR v_type_recette NOT IN ('cotisation_mensuelle','cotisation_exceptionnelle','don') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ce type de mouvement ne peut pas être annulé';
+    END IF;
+    IF v_annule = 1 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ce paiement a déjà été annulé';
+    END IF;
+
+    START TRANSACTION;
+
+    UPDATE caisse_mouvements
+    SET annule = 1, annule_le = NOW(), annule_par = p_user_id, motif_annulation = p_motif
+    WHERE id = p_mouvement_id;
+
+    UPDATE caisse SET solde = solde - v_montant WHERE exercice = v_exercice;
+    SELECT solde INTO v_nouveau_solde FROM caisse WHERE exercice = v_exercice;
+
+    IF v_type_recette = 'cotisation_mensuelle' THEN
+        SELECT montant_paye, montant_du INTO v_montant_paye, v_montant_du
+        FROM contributions WHERE id = v_reference_id FOR UPDATE;
+
+        SET v_nouveau_paye  = GREATEST(v_montant_paye - v_montant, 0);
+        SET v_nouveau_statut = IF(v_nouveau_paye >= v_montant_du, 'paid', IF(v_nouveau_paye > 0, 'partial', 'unpaid'));
+
+        UPDATE contributions
+        SET montant_paye   = v_nouveau_paye,
+            statut         = v_nouveau_statut,
+            date_paiement  = IF(v_nouveau_paye = 0, NULL, date_paiement),
+            reference_recu = IF(v_nouveau_paye = 0, NULL, reference_recu)
+        WHERE id = v_reference_id;
+
+    ELSEIF v_type_recette = 'cotisation_exceptionnelle' THEN
+        SELECT montant_paye, montant_du INTO v_montant_paye, v_montant_du
+        FROM cotisations_exceptionnelles WHERE id = v_reference_id FOR UPDATE;
+
+        SET v_nouveau_paye  = GREATEST(v_montant_paye - v_montant, 0);
+        SET v_nouveau_statut = IF(v_nouveau_paye >= v_montant_du, 'paid', IF(v_nouveau_paye > 0, 'partial', 'unpaid'));
+
+        UPDATE cotisations_exceptionnelles
+        SET montant_paye   = v_nouveau_paye,
+            statut         = v_nouveau_statut,
+            date_paiement  = IF(v_nouveau_paye = 0, NULL, date_paiement),
+            reference_recu = IF(v_nouveau_paye = 0, NULL, reference_recu)
+        WHERE id = v_reference_id;
+    END IF;
+    -- 'don' : transaction unique, rien à recalculer côté source — le mouvement annulé suffit.
+
+    INSERT INTO audit_log (action, table_name, record_id, montant, user_id, details)
+    VALUES ('ANNULATION_PAIEMENT', 'caisse_mouvements', p_mouvement_id, v_montant, p_user_id,
+            JSON_OBJECT('type_recette', v_type_recette, 'reference_id', v_reference_id,
+                        'montant_annule', v_montant, 'motif', p_motif));
+
+    COMMIT;
+    SET o_message = 'OK: Paiement annulé';
+END$$
+
+
+-- =============================================================================
 -- sp_create_cotisation_exceptionnelle
 -- Crée un appel de fonds exceptionnel pour un ou tous les membres actifs.
 -- p_member_id NULL => génère une ligne pour CHAQUE membre actif.

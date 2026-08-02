@@ -617,6 +617,10 @@ CREATE TABLE IF NOT EXISTS caisse_mouvements (
     libelle       VARCHAR(255)      NULL,
     created_by    BIGINT UNSIGNED   NULL,
     created_at    TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    annule            BOOLEAN         NOT NULL DEFAULT 0 COMMENT 'Paiement annulé — exclu des totaux mais conservé pour traçabilité',
+    annule_le         TIMESTAMP       NULL,
+    annule_par        BIGINT UNSIGNED NULL,
+    motif_annulation  VARCHAR(255)    NULL,
 
     PRIMARY KEY (id),
     INDEX idx_mouvements_exercice    (exercice),
@@ -624,12 +628,19 @@ CREATE TABLE IF NOT EXISTS caisse_mouvements (
     INDEX idx_mouvements_type_recette(type_recette),
     INDEX idx_mouvements_categorie   (categorie_id),
     INDEX idx_mouvements_date        (created_at),
+    INDEX idx_mouvements_annule      (annule),
 
     CONSTRAINT fk_mouvements_categorie
         FOREIGN KEY (categorie_id) REFERENCES categories_depenses(id) ON DELETE RESTRICT,
 
     CONSTRAINT chk_mouvement_montant CHECK (montant > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE caisse_mouvements ADD COLUMN annule BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Paiement annulé — exclu des totaux mais conservé pour traçabilité';
+ALTER TABLE caisse_mouvements ADD COLUMN annule_le TIMESTAMP NULL;
+ALTER TABLE caisse_mouvements ADD COLUMN annule_par BIGINT UNSIGNED NULL;
+ALTER TABLE caisse_mouvements ADD COLUMN motif_annulation VARCHAR(255) NULL;
+ALTER TABLE caisse_mouvements ADD INDEX idx_mouvements_annule (annule);
 
 
 -- =============================================================================

@@ -64,6 +64,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('caisse/{exercice}',           [FinanceController::class, 'caisse']);
     Route::get('caisse/{exercice}/mouvements', [FinanceController::class, 'mouvements']);
 
+    // Annulation d'un paiement — réservé admin/trésorier
+    Route::post('caisse/mouvements/{id}/annuler', [FinanceController::class, 'annulerPaiement'])
+        ->middleware('tresorier');
+
     // -------------------------------------------------------------------------
     // Prêts
     // -------------------------------------------------------------------------

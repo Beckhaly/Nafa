@@ -4,8 +4,11 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/fr'
 import api from '../api/client'
 import { useSettings } from '../context/SettingsContext'
+import { useAuth } from '../context/AuthContext'
 import Spinner from '../components/Spinner'
 import Modal from '../components/Modal'
+
+const ANNULABLE_TYPES = ['cotisation_mensuelle', 'cotisation_exceptionnelle', 'don']
 
 dayjs.locale('fr')
 
@@ -27,6 +30,7 @@ const TYPE_RECETTE_LABEL = {
 ═══════════════════════════════════════════════════════════════════════ */
 export default function FinancePage() {
   const { settings } = useSettings()
+  const { user } = useAuth()
   const [annee,      setAnnee]      = useState(new Date().getFullYear())
   const [filtre,     setFiltre]     = useState('')       // '' | 'credit' | 'debit'
   const [solde,      setSolde]      = useState(null)
@@ -36,10 +40,12 @@ export default function FinancePage() {
   const [events,     setEvents]     = useState([])
   const [loading,    setLoading]    = useState(true)
   const [modal,      setModal]      = useState(null)    // null | 'don' | 'depense'
+  const [annulerCible, setAnnulerCible] = useState(null) // mouvement à annuler | null
   const [refreshKey, setRefreshKey] = useState(0)
 
   const devise = settings?.devise ?? 'FCFA'
   const reload = () => setRefreshKey((k) => k + 1)
+  const canCancel = ['admin', 'tresorier'].includes(user?.role)
 
   /* load caisse + mouvements */
   useEffect(() => {
@@ -66,12 +72,12 @@ export default function FinancePage() {
     })
   }, [])
 
-  /* stats */
+  /* stats — les mouvements annulés ne comptent plus dans les totaux */
   const totalCredits = mouvements
-    .filter((m) => m.type === 'credit')
+    .filter((m) => m.type === 'credit' && !Number(m.annule))
     .reduce((s, m) => s + Number(m.montant), 0)
   const totalDebits = mouvements
-    .filter((m) => m.type === 'debit')
+    .filter((m) => m.type === 'debit' && !Number(m.annule))
     .reduce((s, m) => s + Number(m.montant), 0)
 
   return (
@@ -163,16 +169,20 @@ export default function FinancePage() {
                         { label: 'Libellé',                 right: false },
                         { label: `Montant (${devise})`,     right: true  },
                         { label: `Solde après (${devise})`, right: true  },
-                      ].map(({ label, right }) => (
-                        <th key={label} className={`px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}>
+                        { label: '',                        right: true  },
+                      ].map(({ label, right }, i) => (
+                        <th key={label || `col-${i}`} className={`px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}>
                           {label}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {mouvements.map((m, i) => (
-                      <tr key={i} className="hover:bg-gray-50">
+                    {mouvements.map((m, i) => {
+                      const annule = !!Number(m.annule)
+                      const annulable = canCancel && !annule && m.type === 'credit' && ANNULABLE_TYPES.includes(m.type_recette)
+                      return (
+                      <tr key={i} className={`hover:bg-gray-50 ${annule ? 'opacity-50' : ''}`}>
                         <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                           {dayjs(m.created_at).format('D MMM YYYY')}
                         </td>
@@ -186,20 +196,35 @@ export default function FinancePage() {
                               {m.categorie_libelle ?? 'Dépense'}
                             </span>
                           )}
+                          {annule && (
+                            <span className="badge bg-gray-100 text-gray-500 ml-1.5" title={m.motif_annulation ?? ''}>
+                              Annulé{m.annule_par_nom ? ` — ${m.annule_par_nom}` : ''}
+                            </span>
+                          )}
                         </td>
-                        <td className="px-4 py-3 text-gray-700 max-w-xs truncate" title={m.libelle}>
+                        <td className={`px-4 py-3 text-gray-700 max-w-xs truncate ${annule ? 'line-through' : ''}`} title={m.libelle}>
                           {m.libelle}
                         </td>
-                        <td className={`px-4 py-3 font-semibold tabular-nums whitespace-nowrap text-right ${
-                          m.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                        }`}>
+                        <td className={`px-4 py-3 font-semibold tabular-nums whitespace-nowrap text-right ${annule ? 'line-through text-gray-400' : m.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
                           {m.type === 'credit' ? '+' : '-'}{fmt(m.montant)}
                         </td>
                         <td className="px-4 py-3 tabular-nums text-gray-600 whitespace-nowrap text-right">
                           {fmt(m.solde_apres)}
                         </td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          {annulable && (
+                            <button
+                              type="button"
+                              className="text-xs text-red-500 hover:text-red-700 hover:underline"
+                              onClick={() => setAnnulerCible(m)}
+                            >
+                              Annuler
+                            </button>
+                          )}
+                        </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -234,7 +259,63 @@ export default function FinancePage() {
           />
         </Modal>
       )}
+
+      {annulerCible && (
+        <Modal title="Annuler ce paiement" onClose={() => setAnnulerCible(null)} size="sm">
+          <AnnulerPaiementForm
+            mouvement={annulerCible}
+            devise={devise}
+            onSave={async (motif) => {
+              await api.post(`/caisse/mouvements/${annulerCible.id}/annuler`, { motif })
+              toast.success('Paiement annulé')
+              reload()
+            }}
+            onClose={() => setAnnulerCible(null)}
+          />
+        </Modal>
+      )}
     </div>
+  )
+}
+
+/* ── Annulation d'un paiement ──────────────────────────────────────────── */
+function AnnulerPaiementForm({ mouvement, devise, onSave, onClose }) {
+  const [motif, setMotif]     = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await onSave(motif)
+      onClose()
+    } catch (err) {
+      toast.error(err.response?.data?.message ?? 'Erreur lors de l\'annulation.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-sm">
+        <p className="text-gray-700">{mouvement.libelle}</p>
+        <p className="text-red-600 font-semibold mt-1">
+          -{fmt(mouvement.montant)} {devise} seront débités de la caisse
+        </p>
+      </div>
+      <div>
+        <label className="label">Motif de l'annulation *</label>
+        <input className="input" value={motif} onChange={(e) => setMotif(e.target.value)}
+          required placeholder="ex : Erreur de saisie, doublon…" autoFocus />
+      </div>
+      <div className="flex gap-3 pt-2">
+        <button type="submit" className="btn-primary flex-1 !bg-red-600 hover:!bg-red-700" disabled={loading}>
+          {loading ? 'Annulation…' : 'Confirmer l\'annulation'}
+        </button>
+        <button type="button" className="btn-secondary" onClick={onClose}>Retour</button>
+      </div>
+    </form>
   )
 }
 

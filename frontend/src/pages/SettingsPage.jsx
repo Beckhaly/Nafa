@@ -128,6 +128,7 @@ export default function SettingsPage() {
         exercice_courant:             parseInt(form.exercice_courant),
         date_debut_cotisations:       form.date_debut_cotisations    || null,
         tenir_compte_date_adhesion:   form.tenir_compte_date_adhesion ?? false,
+        autoriser_paiement_avance:    form.autoriser_paiement_avance  ?? false,
         logo_url:                     form.logo_url                  || null,
         reglement_interieur:          form.reglement_interieur       || null,
         reglement_url:                form.reglement_url             || null,
@@ -319,6 +320,15 @@ export default function SettingsPage() {
                 <div className="flex-1">
                   <p className="font-medium text-gray-900 text-sm">Tenir compte de la date d'adhésion par membre</p>
                   <p className="text-xs text-gray-500">Pour chaque membre, le point de départ retenu est le plus tardif entre la date ci-dessus et sa date d'adhésion individuelle</p>
+                </div>
+              </label>
+              <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                <input type="checkbox" className="w-4 h-4 accent-blue-600"
+                  checked={form.autoriser_paiement_avance ?? false}
+                  onChange={(e) => setVal('autoriser_paiement_avance', e.target.checked)} />
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">Autoriser le paiement des cotisations en avance</p>
+                  <p className="text-xs text-gray-500">Permet à un membre de régler un mois futur (ex : payer septembre dès juillet) directement depuis la matrice de pointage</p>
                 </div>
               </label>
             </Section>

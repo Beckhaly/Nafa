@@ -1126,6 +1126,7 @@ CREATE TABLE IF NOT EXISTS parametres (
     exercice_courant             SMALLINT UNSIGNED NOT NULL DEFAULT 2026,
     date_debut_cotisations       DATE              NULL COMMENT 'Date à partir de laquelle les cotisations mensuelles sont dues — mois antérieurs exclus des KPI',
     tenir_compte_date_adhesion   BOOLEAN           NOT NULL DEFAULT 0 COMMENT 'Si actif, seuil par membre = MAX(date_debut_cotisations, date_adhesion)',
+    autoriser_paiement_avance    BOOLEAN           NOT NULL DEFAULT 0 COMMENT 'Si actif, un membre peut régler une cotisation mensuelle future',
     logo_url                     VARCHAR(255)      NULL,
     reglement_interieur          LONGTEXT          NULL,
     reglement_url                VARCHAR(255)      NULL,
@@ -1140,5 +1141,6 @@ CREATE TABLE IF NOT EXISTS parametres (
 ALTER TABLE parametres ADD COLUMN date_debut_activite DATE NULL COMMENT 'Date de début d''activité réelle de l''association (peut différer de date_creation)';
 ALTER TABLE parametres ADD COLUMN date_debut_cotisations DATE NULL COMMENT 'Date à partir de laquelle les cotisations mensuelles sont dues — mois antérieurs exclus des KPI';
 ALTER TABLE parametres ADD COLUMN tenir_compte_date_adhesion BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Si actif, seuil par membre = MAX(date_debut_cotisations, date_adhesion)';
+ALTER TABLE parametres ADD COLUMN autoriser_paiement_avance BOOLEAN NOT NULL DEFAULT 0 COMMENT 'Si actif, un membre peut régler une cotisation mensuelle future';
 
 SET foreign_key_checks = 1;

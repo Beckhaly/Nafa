@@ -102,8 +102,11 @@ function MensuelTab() {
       .finally(() => setLoading(false))
   }, [annee])
 
+  const paiementAvanceAutorise = !!settings?.autoriser_paiement_avance
+
   const handleCellClick = (member, moisIdx, statut) => {
-    if (statut !== 'unpaid' && statut !== 'partial') return
+    const payable = statut === 'unpaid' || statut === 'partial' || (statut === 'future' && paiementAvanceAutorise)
+    if (!payable) return
     setModal({ member, mois: moisIdx + 1 })
   }
 
@@ -218,7 +221,9 @@ function MensuelTab() {
             {l}
           </span>
         ))}
-        <span className="text-gray-400 hidden sm:inline">· Clic rouge/jaune pour enregistrer un paiement</span>
+        <span className="text-gray-400 hidden sm:inline">
+          · Clic rouge/jaune{paiementAvanceAutorise ? '/gris (à venir)' : ''} pour enregistrer un paiement
+        </span>
       </div>
 
       {loading ? <Spinner /> : (
@@ -257,14 +262,16 @@ function MensuelTab() {
                   </td>
                   {MONTH_KEYS.map((key, i) => {
                     const statut = member[key] ?? 'future'
-                    const clickable = statut === 'unpaid' || statut === 'partial'
+                    const futurePayable = statut === 'future' && paiementAvanceAutorise
+                    const clickable = statut === 'unpaid' || statut === 'partial' || futurePayable
                     return (
                       <td key={key} className="px-1 py-2 text-center">
                         <button
                           onClick={() => handleCellClick(member, i, statut)}
-                          title={STATUT_LABEL[statut] ?? statut}
+                          title={futurePayable ? 'À venir — payable en avance' : (STATUT_LABEL[statut] ?? statut)}
                           className={`w-9 h-9 rounded-lg text-xs font-bold transition-opacity
                             ${CELL_STYLE[statut] ?? CELL_STYLE.future}
+                            ${futurePayable ? 'hover:bg-gray-300 ring-1 ring-inset ring-gray-300' : ''}
                             ${clickable ? 'cursor-pointer' : 'cursor-default'}`}
                         >
                           {CELL_LABEL[statut] ?? '·'}

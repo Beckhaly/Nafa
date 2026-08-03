@@ -215,6 +215,12 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Mois invalide (1-12)';
     END IF;
 
+    IF CONCAT(p_annee,'-',LPAD(p_mois,2,'0')) > DATE_FORMAT(CURDATE(),'%Y-%m') THEN
+        IF NOT EXISTS (SELECT 1 FROM parametres WHERE id = 1 AND autoriser_paiement_avance = 1) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Le paiement en avance n''est pas autorisé. Activez cette option dans les paramètres.';
+        END IF;
+    END IF;
+
     SELECT COUNT(*), MAX(CONCAT(nom, ' ', prenom)) INTO v_member_ok, v_nom_complet
     FROM members WHERE id = p_member_id AND statut = 'actif';
     IF v_member_ok = 0 THEN
@@ -695,42 +701,54 @@ BEGIN
         CONCAT(m.nom, ' ', m.prenom, IFNULL(CONCAT(' (', m.alias, ')'), '')) AS nom_complet,
         rm.libelle AS role,
 
-        CASE WHEN CONCAT(p_annee,'-01') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+        CASE WHEN MAX(CASE WHEN c.mois=1  THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=1  THEN c.statut END)
+             WHEN CONCAT(p_annee,'-01') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-01') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=1  THEN c.statut END),'unpaid') END AS jan,
-        CASE WHEN CONCAT(p_annee,'-02') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS jan,
+        CASE WHEN MAX(CASE WHEN c.mois=2  THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=2  THEN c.statut END)
+             WHEN CONCAT(p_annee,'-02') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-02') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=2  THEN c.statut END),'unpaid') END AS fev,
-        CASE WHEN CONCAT(p_annee,'-03') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS fev,
+        CASE WHEN MAX(CASE WHEN c.mois=3  THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=3  THEN c.statut END)
+             WHEN CONCAT(p_annee,'-03') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-03') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=3  THEN c.statut END),'unpaid') END AS mar,
-        CASE WHEN CONCAT(p_annee,'-04') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS mar,
+        CASE WHEN MAX(CASE WHEN c.mois=4  THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=4  THEN c.statut END)
+             WHEN CONCAT(p_annee,'-04') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-04') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=4  THEN c.statut END),'unpaid') END AS avr,
-        CASE WHEN CONCAT(p_annee,'-05') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS avr,
+        CASE WHEN MAX(CASE WHEN c.mois=5  THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=5  THEN c.statut END)
+             WHEN CONCAT(p_annee,'-05') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-05') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=5  THEN c.statut END),'unpaid') END AS mai,
-        CASE WHEN CONCAT(p_annee,'-06') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS mai,
+        CASE WHEN MAX(CASE WHEN c.mois=6  THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=6  THEN c.statut END)
+             WHEN CONCAT(p_annee,'-06') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-06') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=6  THEN c.statut END),'unpaid') END AS jun,
-        CASE WHEN CONCAT(p_annee,'-07') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS jun,
+        CASE WHEN MAX(CASE WHEN c.mois=7  THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=7  THEN c.statut END)
+             WHEN CONCAT(p_annee,'-07') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-07') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=7  THEN c.statut END),'unpaid') END AS jul,
-        CASE WHEN CONCAT(p_annee,'-08') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS jul,
+        CASE WHEN MAX(CASE WHEN c.mois=8  THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=8  THEN c.statut END)
+             WHEN CONCAT(p_annee,'-08') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-08') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=8  THEN c.statut END),'unpaid') END AS aou,
-        CASE WHEN CONCAT(p_annee,'-09') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS aou,
+        CASE WHEN MAX(CASE WHEN c.mois=9  THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=9  THEN c.statut END)
+             WHEN CONCAT(p_annee,'-09') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-09') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=9  THEN c.statut END),'unpaid') END AS sep,
-        CASE WHEN CONCAT(p_annee,'-10') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS sep,
+        CASE WHEN MAX(CASE WHEN c.mois=10 THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=10 THEN c.statut END)
+             WHEN CONCAT(p_annee,'-10') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-10') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=10 THEN c.statut END),'unpaid') END AS oct,
-        CASE WHEN CONCAT(p_annee,'-11') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS oct,
+        CASE WHEN MAX(CASE WHEN c.mois=11 THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=11 THEN c.statut END)
+             WHEN CONCAT(p_annee,'-11') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-11') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=11 THEN c.statut END),'unpaid') END AS nov,
-        CASE WHEN CONCAT(p_annee,'-12') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
+             ELSE 'unpaid' END AS nov,
+        CASE WHEN MAX(CASE WHEN c.mois=12 THEN c.statut END) IN ('paid','partial') THEN MAX(CASE WHEN c.mois=12 THEN c.statut END)
+             WHEN CONCAT(p_annee,'-12') > DATE_FORMAT(CURDATE(),'%Y-%m') THEN 'future'
              WHEN CONCAT(p_annee,'-12') < DATE_FORMAT(IF(v_tenir_adhesion, GREATEST(v_seuil_global, m.date_adhesion), v_seuil_global), '%Y-%m') THEN 'na'
-             ELSE COALESCE(MAX(CASE WHEN c.mois=12 THEN c.statut END),'unpaid') END AS dec_
+             ELSE 'unpaid' END AS dec_
 
     FROM members m
     JOIN roles_membres rm ON rm.id = m.role_id

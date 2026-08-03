@@ -41,6 +41,7 @@ class ParametreController extends Controller
             'exercice_courant'             => 'required|integer|min:2020|max:2100',
             'date_debut_cotisations'       => 'nullable|date',
             'tenir_compte_date_adhesion'   => 'nullable|boolean',
+            'autoriser_paiement_avance'    => 'nullable|boolean',
             'logo_url'                     => 'nullable|string|max:255',
             'reglement_interieur'          => 'nullable|string',
             'reglement_url'                => 'nullable|string|max:255',

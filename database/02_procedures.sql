@@ -199,6 +199,12 @@ BEGIN
     DECLARE v_seq           INT;
     DECLARE v_member_ok     INT DEFAULT 0;
     DECLARE v_nom_complet   VARCHAR(200);
+    DECLARE v_seuil_global    DATE    DEFAULT '1900-01-01';
+    DECLARE v_tenir_adhesion  BOOLEAN DEFAULT 0;
+    DECLARE v_date_adhesion   DATE;
+    DECLARE v_seuil_effectif  DATE;
+    DECLARE v_mois_depart     TINYINT;
+    DECLARE v_mois_manquant   TINYINT;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -218,6 +224,31 @@ BEGIN
     IF CONCAT(p_annee,'-',LPAD(p_mois,2,'0')) > DATE_FORMAT(CURDATE(),'%Y-%m') THEN
         IF NOT EXISTS (SELECT 1 FROM parametres WHERE id = 1 AND autoriser_paiement_avance = 1) THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Le paiement en avance n''est pas autorisé. Activez cette option dans les paramètres.';
+        END IF;
+
+        -- Interdit de sauter un mois : tous les mois dus entre le seuil de départ et
+        -- le mois cible (exclu) doivent déjà être payés intégralement.
+        SELECT IFNULL(date_debut_cotisations, '1900-01-01'), IFNULL(tenir_compte_date_adhesion, 0)
+        INTO   v_seuil_global, v_tenir_adhesion
+        FROM   parametres WHERE id = 1 LIMIT 1;
+
+        SELECT date_adhesion INTO v_date_adhesion FROM members WHERE id = p_member_id;
+        SET v_seuil_effectif = IF(v_tenir_adhesion, GREATEST(v_seuil_global, v_date_adhesion), v_seuil_global);
+        SET v_mois_depart = IF(YEAR(v_seuil_effectif) < p_annee, 1,
+                             IF(YEAR(v_seuil_effectif) = p_annee, MONTH(v_seuil_effectif), p_mois));
+
+        SELECT MIN(mois_test) INTO v_mois_manquant
+        FROM (SELECT 1 AS mois_test UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6
+              UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12) mois_annee
+        WHERE mois_annee.mois_test >= v_mois_depart AND mois_annee.mois_test < p_mois
+          AND NOT EXISTS (
+              SELECT 1 FROM contributions c2
+              WHERE c2.member_id = p_member_id AND c2.annee = p_annee
+                AND c2.mois = mois_annee.mois_test AND c2.statut = 'paid'
+          );
+
+        IF v_mois_manquant IS NOT NULL THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Vous devez d''abord régler le mois précédent avant de payer un mois en avance.';
         END IF;
     END IF;
 

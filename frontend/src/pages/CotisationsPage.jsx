@@ -105,9 +105,15 @@ function MensuelTab() {
   const paiementAvanceAutorise = !!settings?.autoriser_paiement_avance
 
   const handleCellClick = (member, moisIdx, statut) => {
-    const payable = statut === 'unpaid' || statut === 'partial' || (statut === 'future' && paiementAvanceAutorise)
-    if (!payable) return
-    setModal({ member, mois: moisIdx + 1 })
+    if (statut === 'unpaid' || statut === 'partial') {
+      setModal({ member, mois: moisIdx + 1 })
+      return
+    }
+    if (statut === 'future' && paiementAvanceAutorise) {
+      const moisPrecedentsOk = MONTH_KEYS.slice(0, moisIdx)
+        .every((k) => ['paid', 'na'].includes(member[k] ?? 'future'))
+      if (moisPrecedentsOk) setModal({ member, mois: moisIdx + 1 })
+    }
   }
 
   const handlePaymentSuccess = (result) => {
@@ -262,12 +268,17 @@ function MensuelTab() {
                   </td>
                   {MONTH_KEYS.map((key, i) => {
                     const statut = member[key] ?? 'future'
-                    const futurePayable = statut === 'future' && paiementAvanceAutorise
+                    // Un mois "à venir" n'est payable en avance que si tous les mois dus qui le
+                    // précèdent (hors 'na') sont déjà payés — interdiction de sauter un mois.
+                    const moisPrecedentsOk = MONTH_KEYS.slice(0, i)
+                      .every((k) => ['paid', 'na'].includes(member[k] ?? 'future'))
+                    const futurePayable = statut === 'future' && paiementAvanceAutorise && moisPrecedentsOk
                     const clickable = statut === 'unpaid' || statut === 'partial' || futurePayable
                     return (
                       <td key={key} className="px-1 py-2 text-center">
                         <button
                           onClick={() => handleCellClick(member, i, statut)}
+                          disabled={!clickable}
                           title={futurePayable ? 'À venir — payable en avance' : (STATUT_LABEL[statut] ?? statut)}
                           className={`w-9 h-9 rounded-lg text-xs font-bold transition-opacity
                             ${CELL_STYLE[statut] ?? CELL_STYLE.future}

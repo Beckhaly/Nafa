@@ -45,8 +45,8 @@ BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        GET STACKED DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         ROLLBACK;
-        GET DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         SET o_member_id = NULL;
         SET o_matricule = NULL;
     END;
@@ -208,8 +208,8 @@ BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        GET STACKED DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         ROLLBACK;
-        GET DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         SET o_reference_recu = NULL;
         SET o_statut         = NULL;
     END;
@@ -346,8 +346,8 @@ BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        GET STACKED DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         ROLLBACK;
-        GET DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         SET o_reference_recu = NULL;
         SET o_statut         = NULL;
     END;
@@ -450,8 +450,8 @@ BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        GET STACKED DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         ROLLBACK;
-        GET DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
     END;
 
     SELECT type, type_recette, reference_id, montant, exercice, annule
@@ -547,8 +547,8 @@ BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        GET STACKED DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         ROLLBACK;
-        GET DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         SET o_nb_crees = 0;
     END;
 
@@ -627,8 +627,8 @@ BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        GET STACKED DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         ROLLBACK;
-        GET DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         SET o_loan_id    = NULL;
         SET o_mensualite = NULL;
     END;
@@ -816,8 +816,8 @@ BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        GET STACKED DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         ROLLBACK;
-        GET DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         SET o_don_id         = NULL;
         SET o_reference_recu = NULL;
     END;
@@ -900,8 +900,8 @@ BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        GET STACKED DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         ROLLBACK;
-        GET DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         SET o_depense_id = NULL;
     END;
 
@@ -1015,8 +1015,8 @@ BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        GET STACKED DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         ROLLBACK;
-        GET DIAGNOSTICS CONDITION 1 o_message = MESSAGE_TEXT;
         SET o_nb_sms      = 0;
         SET o_nb_whatsapp = 0;
     END;

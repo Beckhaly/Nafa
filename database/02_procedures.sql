@@ -182,7 +182,10 @@ END$$
 DROP PROCEDURE IF EXISTS sp_pay_contribution$$
 CREATE PROCEDURE sp_pay_contribution(
     IN  p_member_id  BIGINT UNSIGNED,
-    IN  p_annee      YEAR,
+    -- SMALLINT et non YEAR : ce type comme paramètre de procédure produit des résultats
+    -- incorrects dans une sous-requête corrélée (NOT EXISTS) sur MySQL 8.0 (confirmé en
+    -- prod — cause du rejet erroné "mois sauté" alors que le mois précédent était payé).
+    IN  p_annee      SMALLINT UNSIGNED,
     IN  p_mois       TINYINT UNSIGNED,
     IN  p_montant    DECIMAL(15,2),
     IN  p_montant_du DECIMAL(15,2),

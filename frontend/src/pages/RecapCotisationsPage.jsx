@@ -9,11 +9,22 @@ const fmt    = (n) => Number(n ?? 0).toLocaleString('fr-FR')
 const fmtPdf = (n) => Math.round(Number(n ?? 0)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 const pct = (n) => Number(n ?? 0).toFixed(1) + '%'
 
-const statutInfo = (row) => {
-  if (row.solde_restant <= 0)   return { label: 'À jour',  cls: 'bg-green-100 text-green-700'  }
-  if (row.total_paye > 0)       return { label: 'Partiel', cls: 'bg-yellow-100 text-yellow-700' }
-  return                               { label: 'Impayé',  cls: 'bg-red-100 text-red-600'       }
+const STATUT = {
+  jour:    { label: 'À jour',  cls: 'bg-green-100 text-green-700',   pdf: [21, 128, 61]  },
+  partiel: { label: 'Partiel', cls: 'bg-yellow-100 text-yellow-700', pdf: [161, 98, 7]   },
+  impaye:  { label: 'Impayé',  cls: 'bg-red-100 text-red-600',       pdf: [185, 28, 28]  },
 }
+
+// Champs de chaque type de cotisation dans une ligne de `rows`
+const TYPES = {
+  mensuel:      { label: 'Cotisations mensuelles',      court: 'mensuelles',      du: 'mens_du', paye: 'mens_paye', solde: 'mens_solde' },
+  exceptionnel: { label: 'Cotisations exceptionnelles', court: 'exceptionnelles', du: 'cex_du',  paye: 'cex_paye',  solde: 'cex_solde'  },
+}
+
+const etatGlobal = (r) => r.solde_restant <= 0 ? 'jour' : r.total_paye > 0 ? 'partiel' : 'impaye'
+const etatType   = (r, t) => Number(r[t.solde]) <= 0 ? 'jour' : Number(r[t.paye]) > 0 ? 'partiel' : 'impaye'
+
+const statutInfo = (row) => STATUT[etatGlobal(row)]
 
 export default function RecapCotisationsPage() {
   const [annees,   setAnnees]   = useState([])
@@ -23,6 +34,7 @@ export default function RecapCotisationsPage() {
   const [selected, setSelected] = useState(new Set())
   const [sending,  setSending]  = useState(false)
   const [filtre,   setFiltre]   = useState('tous')
+  const [vue,      setVue]      = useState('global')  // 'global' | 'mensuel' | 'exceptionnel'
 
   useEffect(() => {
     api.get('/rapports/recap-cotisations/annees').then(r => {
@@ -43,12 +55,25 @@ export default function RecapCotisationsPage() {
 
   useEffect(() => { load() }, [load])
 
-  const rows = (data?.rows ?? []).filter(r => {
-    if (filtre === 'jour')    return r.solde_restant <= 0
-    if (filtre === 'partiel') return r.total_paye > 0 && r.solde_restant > 0
-    if (filtre === 'impaye')  return r.total_paye <= 0
-    return true
+  const allRows = data?.rows ?? []
+  const rows = allRows.filter(r => {
+    if (filtre === 'tous') return true
+    const etat = vue === 'global' ? etatGlobal(r) : etatType(r, TYPES[vue])
+    return etat === filtre
   })
+
+  // Indicateurs d'une vue par type (calculés sur tous les membres, sans filtre)
+  const typeKpi = (t) => {
+    const du    = allRows.reduce((s, r) => s + Number(r[t.du]), 0)
+    const paye  = allRows.reduce((s, r) => s + Number(r[t.paye]), 0)
+    return {
+      nb_membres: allRows.length,
+      nb_a_jour:  allRows.filter(r => etatType(r, t) === 'jour').length,
+      du, paye,
+      solde: du - paye,
+      taux:  du > 0 ? (paye / du) * 100 : 0,
+    }
+  }
 
   const toggleAll = () => {
     if (selected.size === rows.length) setSelected(new Set())
@@ -60,8 +85,64 @@ export default function RecapCotisationsPage() {
     setSelected(s)
   }
 
+  const exportPDFType = () => {
+    const t = TYPES[vue]
+    const k = typeKpi(t)
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Récapitulatif des cotisations ${t.court} — ${annee}`, 14, 14)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100)
+    doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 14, 20)
+
+    doc.setTextColor(0)
+    doc.text([
+      `Membres : ${k.nb_membres}`,
+      `À jour : ${k.nb_a_jour}`,
+      `Taux : ${k.taux.toFixed(1)}%`,
+      `Attendu : ${fmtPdf(k.du)} FCFA`,
+      `Reçu : ${fmtPdf(k.paye)} FCFA`,
+      `Reste dû : ${fmtPdf(k.solde)} FCFA`,
+    ].join('   |   '), 14, 27, { maxWidth: 180 })
+
+    autoTable(doc, {
+      startY: 36,
+      head: [['Membre', 'Attendu', 'Reçu', 'Reste dû', 'Taux', 'Statut']],
+      body: rows.map(r => {
+        const et = etatType(r, t)
+        const du = Number(r[t.du])
+        return [
+          `${r.nom_complet}\n${r.matricule}`,
+          { content: fmtPdf(r[t.du]),   styles: { halign: 'right' } },
+          { content: fmtPdf(r[t.paye]), styles: { halign: 'right' } },
+          { content: fmtPdf(r[t.solde]), styles: { halign: 'right', textColor: Number(r[t.solde]) > 0 ? [220, 38, 38] : [107, 114, 128] } },
+          { content: du > 0 ? `${((Number(r[t.paye]) / du) * 100).toFixed(1)}%` : '—', styles: { halign: 'center' } },
+          { content: STATUT[et].label, styles: { halign: 'center', textColor: STATUT[et].pdf } },
+        ]
+      }),
+      foot: [[
+        { content: `Total (${rows.length} membres)`, styles: { fontStyle: 'bold' } },
+        { content: fmtPdf(rows.reduce((s, r) => s + Number(r[t.du]), 0)),   styles: { halign: 'right', fontStyle: 'bold' } },
+        { content: fmtPdf(rows.reduce((s, r) => s + Number(r[t.paye]), 0)), styles: { halign: 'right', fontStyle: 'bold' } },
+        { content: fmtPdf(rows.reduce((s, r) => s + Number(r[t.solde]), 0)), styles: { halign: 'right', fontStyle: 'bold', textColor: [185, 28, 28] } },
+        '', '',
+      ]],
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fontStyle: 'bold', fontSize: 8 },
+      footStyles: { fontStyle: 'bold', fontSize: 8 },
+      columnStyles: { 0: { cellWidth: 70 } },
+      showFoot: 'lastPage',
+    })
+
+    doc.save(`recap-cotisations-${vue}-${annee}.pdf`)
+  }
+
   const exportPDF = () => {
     if (!data) return
+    if (vue !== 'global') return exportPDFType()
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
 
     // En-tête
@@ -159,45 +240,73 @@ export default function RecapCotisationsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Sélecteur d'année */}
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-gray-600">Année</label>
-        <select className="input w-28" value={annee} onChange={e => setAnnee(e.target.value)}>
-          {annees.map(a => <option key={a} value={a}>{a}</option>)}
-        </select>
+      {/* Sélecteur d'année et de vue */}
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-600">Année</label>
+          <select className="input w-28" value={annee} onChange={e => setAnnee(e.target.value)}>
+            {annees.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+          {[['global','Global'],['mensuel','Mensuelles'],['exceptionnel','Exceptionnelles']].map(([v,l]) => (
+            <button key={v} onClick={() => { setVue(v); setFiltre('tous') }}
+              className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
+                vue === v ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}>{l}</button>
+          ))}
+        </div>
       </div>
 
       {loading && <div className="flex justify-center py-16"><Spinner /></div>}
 
       {!loading && data && (
         <>
-          {/* KPI globaux */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <KpiCard label="Membres"          value={data.totaux.nb_membres}                                color="blue" />
-            <KpiCard label="À jour"           value={data.totaux.nb_a_jour}                                 color="green" />
-            <KpiCard label="Taux global"      value={pct(data.totaux.taux_recouvrement)}                    color="indigo" />
-            <KpiCard label="Total attendu"    value={fmt(data.totaux.total_du) + ' FCFA'}                   color="purple" small />
-            <KpiCard label="Total reçu"       value={fmt(data.totaux.total_paye) + ' FCFA'}                 color="amber" small />
-            <KpiCard label="Reste dû"         value={fmt(data.totaux.solde_restant) + ' FCFA'}              color="red" small />
-          </div>
+          {vue === 'global' ? (
+            <>
+              {/* KPI globaux */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <KpiCard label="Membres"          value={data.totaux.nb_membres}                                color="blue" />
+                <KpiCard label="À jour"           value={data.totaux.nb_a_jour}                                 color="green" />
+                <KpiCard label="Taux global"      value={pct(data.totaux.taux_recouvrement)}                    color="indigo" />
+                <KpiCard label="Total attendu"    value={fmt(data.totaux.total_du) + ' FCFA'}                   color="purple" small />
+                <KpiCard label="Total reçu"       value={fmt(data.totaux.total_paye) + ' FCFA'}                 color="amber" small />
+                <KpiCard label="Reste dû"         value={fmt(data.totaux.solde_restant) + ' FCFA'}              color="red" small />
+              </div>
 
-          {/* Résumé mensuel vs CEX */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <SectionCard
-              title="Cotisations mensuelles"
-              color="blue"
-              attendu={data.totaux.mens_du}
-              recu={data.totaux.mens_paye}
-              solde={data.totaux.mens_du - data.totaux.mens_paye}
-            />
-            <SectionCard
-              title="Cotisations exceptionnelles"
-              color="violet"
-              attendu={data.totaux.cex_du}
-              recu={data.totaux.cex_paye}
-              solde={data.totaux.cex_du - data.totaux.cex_paye}
-            />
-          </div>
+              {/* Résumé mensuel vs CEX */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <SectionCard
+                  title="Cotisations mensuelles"
+                  color="blue"
+                  attendu={data.totaux.mens_du}
+                  recu={data.totaux.mens_paye}
+                  solde={data.totaux.mens_du - data.totaux.mens_paye}
+                />
+                <SectionCard
+                  title="Cotisations exceptionnelles"
+                  color="violet"
+                  attendu={data.totaux.cex_du}
+                  recu={data.totaux.cex_paye}
+                  solde={data.totaux.cex_du - data.totaux.cex_paye}
+                />
+              </div>
+            </>
+          ) : (() => {
+            // KPI d'un seul type de cotisation
+            const k = typeKpi(TYPES[vue])
+            const color = vue === 'mensuel' ? 'blue' : 'violet'
+            return (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <KpiCard label="Membres"       value={k.nb_membres}                       color="blue" />
+                <KpiCard label="À jour"        value={k.nb_a_jour}                        color="green" />
+                <KpiCard label="Taux"          value={pct(k.taux)}                        color={color === 'blue' ? 'indigo' : 'purple'} />
+                <KpiCard label="Total attendu" value={fmt(k.du) + ' FCFA'}                color="purple" small />
+                <KpiCard label="Total reçu"    value={fmt(k.paye) + ' FCFA'}              color="amber" small />
+                <KpiCard label="Reste dû"      value={fmt(k.solde) + ' FCFA'}             color="red" small />
+              </div>
+            )
+          })()}
 
           {/* Filtres + actions diffusion */}
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -235,8 +344,89 @@ export default function RecapCotisationsPage() {
             </div>
           </div>
 
-          {/* Tableau */}
-          <div className="card overflow-hidden p-0">
+          {/* Tableau par type de cotisation */}
+          {vue !== 'global' && (() => {
+            const t = TYPES[vue]
+            const tintHead = vue === 'mensuel' ? 'bg-blue-50 text-blue-700' : 'bg-violet-50 text-violet-700'
+            const tintCell = vue === 'mensuel' ? 'bg-blue-50/40' : 'bg-violet-50/40'
+            const tintFoot = vue === 'mensuel' ? 'bg-blue-50' : 'bg-violet-50'
+            const totalDu    = rows.reduce((s, r) => s + Number(r[t.du]), 0)
+            const totalPaye  = rows.reduce((s, r) => s + Number(r[t.paye]), 0)
+            const totalSolde = rows.reduce((s, r) => s + Number(r[t.solde]), 0)
+            return (
+              <div className="card overflow-hidden p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500">
+                        <th className="px-3 py-2 w-8">
+                          <input type="checkbox" className="rounded"
+                            checked={selected.size === rows.length && rows.length > 0}
+                            onChange={toggleAll} />
+                        </th>
+                        <th className="px-4 py-2 text-left uppercase tracking-wide">Membre</th>
+                        <th className={`px-3 py-2 text-right ${tintHead}`}>Attendu</th>
+                        <th className={`px-3 py-2 text-right ${tintHead}`}>Reçu</th>
+                        <th className={`px-3 py-2 text-right ${tintHead}`}>Reste dû</th>
+                        <th className="px-3 py-2 text-right">Taux</th>
+                        <th className="px-3 py-2 text-center">Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {rows.length === 0 && (
+                        <tr><td colSpan={7} className="text-center py-12 text-gray-400">Aucun membre trouvé</td></tr>
+                      )}
+                      {rows.map(r => {
+                        const et = etatType(r, t)
+                        const du = Number(r[t.du])
+                        return (
+                          <tr key={r.member_id}
+                            className={`hover:bg-gray-50 transition-colors ${selected.has(r.member_id) ? 'bg-blue-50' : ''}`}>
+                            <td className="px-3 py-3">
+                              <input type="checkbox" className="rounded"
+                                checked={selected.has(r.member_id)}
+                                onChange={() => toggle(r.member_id)} />
+                            </td>
+                            <td className="px-4 py-3">
+                              <p className="font-semibold text-gray-900 whitespace-nowrap">{r.nom_complet}</p>
+                              <p className="text-xs font-mono text-blue-600">{r.matricule}</p>
+                            </td>
+                            <td className={`px-3 py-3 text-right text-gray-700 font-medium whitespace-nowrap ${tintCell}`}>{fmt(r[t.du])}</td>
+                            <td className={`px-3 py-3 text-right text-green-700 font-medium whitespace-nowrap ${tintCell}`}>{fmt(r[t.paye])}</td>
+                            <td className={`px-3 py-3 text-right font-medium whitespace-nowrap ${tintCell}`}>
+                              <span className={Number(r[t.solde]) > 0 ? 'text-red-500' : 'text-gray-400'}>{fmt(r[t.solde])}</span>
+                            </td>
+                            <td className="px-3 py-3 text-right text-xs text-gray-500 whitespace-nowrap">
+                              {du > 0 ? pct((Number(r[t.paye]) / du) * 100) : '—'}
+                            </td>
+                            <td className="px-3 py-3 text-center">
+                              <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${STATUT[et].cls}`}>
+                                {STATUT[et].label}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                    {rows.length > 0 && (
+                      <tfoot className="bg-gray-100 border-t-2 border-gray-300 text-sm font-bold">
+                        <tr>
+                          <td colSpan={2} className="px-4 py-3 text-gray-700">Total ({rows.length} membres)</td>
+                          <td className={`px-3 py-3 text-right text-gray-800 ${tintFoot}`}>{fmt(totalDu)}</td>
+                          <td className={`px-3 py-3 text-right text-green-700 ${tintFoot}`}>{fmt(totalPaye)}</td>
+                          <td className={`px-3 py-3 text-right text-red-600 ${tintFoot}`}>{fmt(totalSolde)}</td>
+                          <td colSpan={2} />
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Tableau global */}
+          {vue === 'global' && <div className="card overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -342,7 +532,7 @@ export default function RecapCotisationsPage() {
                 )}
               </table>
             </div>
-          </div>
+          </div>}
         </>
       )}
     </div>

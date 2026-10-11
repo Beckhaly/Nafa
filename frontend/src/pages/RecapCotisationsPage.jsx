@@ -85,6 +85,68 @@ export default function RecapCotisationsPage() {
     setSelected(s)
   }
 
+  // Matrice de pointage mois par mois, au même format que l'écran Cotisations > Mensuel
+  const exportMatriceMensuelle = async () => {
+    try {
+      const { data: pivot } = await api.get(`/rapports/pivot/${annee}`)
+      const byId = new Map(pivot.map(p => [p.member_id, p]))
+      const MOIS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
+      const KEYS = ['jan','fev','mar','avr','mai','jun','jul','aou','sep','oct','nov','dec_']
+      const LABEL = { paid: 'Payé', partial: 'Part.', unpaid: 'Impayé', future: '', na: '—' }
+      const FILL  = {
+        paid:    { fillColor: [34, 197, 94],  textColor: [255, 255, 255] },
+        partial: { fillColor: [250, 204, 21], textColor: [0, 0, 0] },
+        unpaid:  { fillColor: [239, 68, 68],  textColor: [255, 255, 255] },
+        future:  { fillColor: [243, 244, 246], textColor: [156, 163, 175] },
+        na:      { fillColor: [249, 250, 251], textColor: [209, 213, 219] },
+      }
+
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Matrice des cotisations mensuelles — ${annee}`, 14, 14)
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100)
+      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 14, 20)
+      doc.setTextColor(0)
+      doc.text('Payé : vert   |   Partiel : jaune   |   Impayé : rouge   |   À venir : vide   |   — : avant le début des cotisations', 14, 26)
+
+      autoTable(doc, {
+        startY: 31,
+        head: [['Membre', ...MOIS, 'Reste dû']],
+        body: rows.map(r => {
+          const p = byId.get(r.member_id) ?? {}
+          return [
+            { content: `${r.nom_complet}\n${r.matricule}` },
+            ...KEYS.map(k => {
+              const s = p[k] ?? 'future'
+              return { content: LABEL[s], styles: { halign: 'center', ...FILL[s] } }
+            }),
+            { content: fmtPdf(r.mens_solde), styles: { halign: 'right', textColor: Number(r.mens_solde) > 0 ? [220, 38, 38] : [107, 114, 128] } },
+          ]
+        }),
+        foot: [[
+          { content: `Payés (${rows.length} membres)`, styles: { fontStyle: 'bold' } },
+          ...KEYS.map(k => ({
+            content: String(rows.filter(r => (byId.get(r.member_id) ?? {})[k] === 'paid').length),
+            styles: { halign: 'center', fontStyle: 'bold' },
+          })),
+          { content: fmtPdf(rows.reduce((s, r) => s + Number(r.mens_solde), 0)), styles: { halign: 'right', fontStyle: 'bold', textColor: [185, 28, 28] } },
+        ]],
+        styles: { fontSize: 7.5, cellPadding: 1.8, valign: 'middle' },
+        headStyles: { fontStyle: 'bold', fontSize: 7.5, halign: 'center' },
+        footStyles: { fontStyle: 'bold', fontSize: 7.5 },
+        columnStyles: { 0: { cellWidth: 58 } },
+        showFoot: 'lastPage',
+      })
+
+      doc.save(`matrice-cotisations-mensuelles-${annee}.pdf`)
+    } catch {
+      toast.error('Erreur lors de la génération du PDF')
+    }
+  }
+
   const exportPDFType = () => {
     const t = TYPES[vue]
     const k = typeKpi(t)
@@ -142,7 +204,8 @@ export default function RecapCotisationsPage() {
 
   const exportPDF = () => {
     if (!data) return
-    if (vue !== 'global') return exportPDFType()
+    if (vue === 'mensuel') return exportMatriceMensuelle()
+    if (vue === 'exceptionnel') return exportPDFType()
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
 
     // En-tête

@@ -558,11 +558,19 @@ function ExceptionnelTab() {
       )}
 
       {/* Event detail modal */}
-      {detail && (
-        <Modal title={detail.cotisations[0]?.libelle || 'Détail appel de fonds'} onClose={() => setDetail(null)} size="lg">
-          <EventCexDetail cotisations={detail.cotisations} onPay={(item) => { setDetail(null); setModal({ mode: 'pay', item }) }} onClose={() => setDetail(null)} reload={reload} />
-        </Modal>
-      )}
+      {detail && (() => {
+        // Recalcul à partir de `items` : après un paiement, le détail reflète les données rafraîchies
+        const detailCotisations = detail.eventId
+          ? items.filter((c) => c.event_id === detail.eventId)
+          : detail.annonceId
+            ? items.filter((c) => c.annonce_id === detail.annonceId)
+            : items.filter((c) => !c.event_id && !c.annonce_id)
+        return (
+          <Modal title={detailCotisations[0]?.libelle || 'Détail appel de fonds'} onClose={() => setDetail(null)} size="lg">
+            <EventCexDetail cotisations={detailCotisations} onPay={(item) => { setDetail(null); setModal({ mode: 'pay', item }) }} onClose={() => setDetail(null)} reload={reload} />
+          </Modal>
+        )
+      })()}
     </div>
   )
 }

@@ -665,8 +665,14 @@ function CreateCexForm({ members, events, annonces, onSave, onClose }) {
     libelle: '', date_echeance: '',
     source_type: 'event', event_id: '', annonce_id: '', destinataire: 'all', member_id: '',
   })
-  const [montant, setMontant] = useState(montantRef)
+  const [montant, setMontant] = useState(String(montantRef))
+  // Une fois le montant saisi à la main, on ne l'écrase plus par un budget ou le défaut
+  const [montantSaisi, setMontantSaisi] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  const appliquerMontantAuto = (valeur) => {
+    if (!montantSaisi) setMontant(String(valeur))
+  }
 
   const set = (k) => (e) => {
     const value = e.target.value
@@ -678,21 +684,13 @@ function CreateCexForm({ members, events, annonces, onSave, onClose }) {
     // Auto-fill montant from event budget if event is selected
     if (k === 'event_id' && value) {
       const selectedEvent = events.find((ev) => ev.id === Number(value))
-      if (selectedEvent?.budget_cex) {
-        setMontant(Number(selectedEvent.budget_cex))
-      } else {
-        setMontant(montantRef)
-      }
+      appliquerMontantAuto(selectedEvent?.budget_cex ? Number(selectedEvent.budget_cex) : montantRef)
     }
 
     // Auto-fill montant from annonce budget if annonce is selected
     if (k === 'annonce_id' && value) {
       const selectedAnnonce = annonces.find((a) => a.id === Number(value))
-      if (selectedAnnonce?.budget_cex) {
-        setMontant(Number(selectedAnnonce.budget_cex))
-      } else {
-        setMontant(montantRef)
-      }
+      appliquerMontantAuto(selectedAnnonce?.budget_cex ? Number(selectedAnnonce.budget_cex) : montantRef)
     }
   }
 
@@ -703,18 +701,26 @@ function CreateCexForm({ members, events, annonces, onSave, onClose }) {
       event_id: '',
       annonce_id: '',
     }))
-    setMontant(montantRef)
+    appliquerMontantAuto(montantRef)
   }
 
-  const handleMontantChange = (e) => setMontant(Number(e.target.value) || montantRef)
+  const handleMontantChange = (e) => {
+    setMontant(e.target.value)
+    setMontantSaisi(true)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const montantDu = Number(montant)
+    if (!montantDu || montantDu <= 0) {
+      toast.error('Le montant doit être positif.')
+      return
+    }
     setLoading(true)
     try {
       await onSave({
         libelle:       form.libelle,
-        montant_du:    montant,
+        montant_du:    montantDu,
         date_echeance: form.date_echeance || null,
         event_id:      form.source_type === 'event' ? (form.event_id || null) : null,
         annonce_id:    form.source_type === 'annonce' ? (form.annonce_id || null) : null,
@@ -746,11 +752,13 @@ function CreateCexForm({ members, events, annonces, onSave, onClose }) {
             className="input"
             value={montant}
             onChange={handleMontantChange}
-            min="0"
+            min="1"
             required
           />
           <p className="text-xs text-gray-400 mt-1">
-            {form.event_id && events.find((ev) => ev.id === Number(form.event_id))?.budget_cex
+            {montantSaisi
+              ? 'Montant saisi manuellement'
+              : form.event_id && events.find((ev) => ev.id === Number(form.event_id))?.budget_cex
               ? `Budget de l'événement appliqué`
               : `Défaut: ${montantRef.toLocaleString('fr-FR')} ${devise}`
             }

@@ -115,16 +115,18 @@ export default function RecapCotisationsPage() {
 
       autoTable(doc, {
         startY: 31,
-        head: [['Membre', ...MOIS, 'Reste dû']],
+        head: [['Membre', ...MOIS, 'Mois dû']],
         body: rows.map(r => {
           const p = byId.get(r.member_id) ?? {}
+          // Mois de retard : mois échus non payés ou partiellement payés
+          const retard = KEYS.filter(k => ['unpaid', 'partial'].includes(p[k])).length
           return [
             { content: `${r.nom_complet}\n${r.matricule}` },
             ...KEYS.map(k => {
               const s = p[k] ?? 'future'
               return { content: LABEL[s], styles: { halign: 'center', ...FILL[s] } }
             }),
-            { content: fmtPdf(r.mens_solde), styles: { halign: 'right', textColor: Number(r.mens_solde) > 0 ? [220, 38, 38] : [107, 114, 128] } },
+            { content: String(retard), styles: { halign: 'center', fontStyle: 'bold', textColor: retard > 0 ? [220, 38, 38] : [107, 114, 128] } },
           ]
         }),
         foot: [[
@@ -133,7 +135,10 @@ export default function RecapCotisationsPage() {
             content: String(rows.filter(r => (byId.get(r.member_id) ?? {})[k] === 'paid').length),
             styles: { halign: 'center', fontStyle: 'bold' },
           })),
-          { content: fmtPdf(rows.reduce((s, r) => s + Number(r.mens_solde), 0)), styles: { halign: 'right', fontStyle: 'bold', textColor: [185, 28, 28] } },
+          {
+            content: String(rows.reduce((s, r) => s + KEYS.filter(k => ['unpaid', 'partial'].includes((byId.get(r.member_id) ?? {})[k])).length, 0)),
+            styles: { halign: 'center', fontStyle: 'bold', textColor: [185, 28, 28] },
+          },
         ]],
         styles: { fontSize: 7.5, cellPadding: 1.8, valign: 'middle' },
         headStyles: { fontStyle: 'bold', fontSize: 7.5, halign: 'center' },

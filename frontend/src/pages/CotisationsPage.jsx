@@ -1020,26 +1020,18 @@ function EventCexDetail({ cotisations, onPay, onClose, reload }) {
 
       {/* Payment modal for member */}
       {payingMember && (
-        <div className="fixed inset-0 bg-black/50 flex items-end z-50">
-          <div className="bg-white w-full max-w-sm rounded-t-xl shadow-lg">
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Enregistrer un paiement</h3>
-              <button onClick={() => setPayingMember(null)} className="text-gray-400 hover:text-gray-600">✕</button>
-            </div>
-            <div className="p-4">
-              <PayCexForm
-                item={payingMember}
-                onSave={async (montant) => {
-                  await api.post(`/cotisations-exceptionnelles/${payingMember.id}/pay`, { montant })
-                  toast.success('Paiement enregistré')
-                  setPayingMember(null)
-                  reload()
-                }}
-                onClose={() => setPayingMember(null)}
-              />
-            </div>
-          </div>
-        </div>
+        <Modal title="Enregistrer un paiement" onClose={() => setPayingMember(null)} size="sm">
+          <PayCexForm
+            item={payingMember}
+            onSave={async (montant) => {
+              await api.post(`/cotisations-exceptionnelles/${payingMember.id}/pay`, { montant })
+              toast.success('Paiement enregistré')
+              setPayingMember(null)
+              reload()
+            }}
+            onClose={() => setPayingMember(null)}
+          />
+        </Modal>
       )}
     </div>
   )

@@ -115,7 +115,7 @@ export default function RecapCotisationsPage() {
 
       autoTable(doc, {
         startY: 31,
-        head: [['Membre', ...MOIS, 'Reste dû']],
+        head: [['Membre', ...MOIS, 'Restant dû']],
         body: rows.map(r => {
           const p = byId.get(r.member_id) ?? {}
           return [
@@ -168,12 +168,12 @@ export default function RecapCotisationsPage() {
       `Taux : ${k.taux.toFixed(1)}%`,
       `Attendu : ${fmtPdf(k.du)} FCFA`,
       `Reçu : ${fmtPdf(k.paye)} FCFA`,
-      `Reste dû : ${fmtPdf(k.solde)} FCFA`,
+      `Restant dû : ${fmtPdf(k.solde)} FCFA`,
     ].join('   |   '), 14, 27, { maxWidth: 180 })
 
     autoTable(doc, {
       startY: 36,
-      head: [['Membre', 'Attendu', 'Reçu', 'Reste dû', 'Taux', 'Statut']],
+      head: [['Membre', 'Attendu', 'Reçu', 'Restant dû', 'Taux', 'Statut']],
       body: rows.map(r => {
         const et = etatType(r, t)
         const du = Number(r[t.du])
@@ -228,7 +228,7 @@ export default function RecapCotisationsPage() {
       `Taux global : ${Number(totaux.taux_recouvrement).toFixed(1)}%`,
       `Total attendu : ${fmtPdf(totaux.total_du)} FCFA`,
       `Total reçu : ${fmtPdf(totaux.total_paye)} FCFA`,
-      `Reste dû : ${fmtPdf(totaux.solde_restant)} FCFA`,
+      `Restant dû : ${fmtPdf(totaux.solde_restant)} FCFA`,
     ]
     doc.text(resume.join('   |   '), 14, 27)
 
@@ -335,7 +335,7 @@ export default function RecapCotisationsPage() {
                 <KpiCard label="Taux global"      value={pct(data.totaux.taux_recouvrement)}                    color="indigo" />
                 <KpiCard label="Total attendu"    value={fmt(data.totaux.total_du) + ' FCFA'}                   color="purple" small />
                 <KpiCard label="Total reçu"       value={fmt(data.totaux.total_paye) + ' FCFA'}                 color="amber" small />
-                <KpiCard label="Reste dû"         value={fmt(data.totaux.solde_restant) + ' FCFA'}              color="red" small />
+                <KpiCard label="Restant dû"         value={fmt(data.totaux.solde_restant) + ' FCFA'}              color="red" small />
               </div>
 
               {/* Résumé mensuel vs CEX */}
@@ -367,7 +367,7 @@ export default function RecapCotisationsPage() {
                 <KpiCard label="Taux"          value={pct(k.taux)}                        color={color === 'blue' ? 'indigo' : 'purple'} />
                 <KpiCard label="Total attendu" value={fmt(k.du) + ' FCFA'}                color="purple" small />
                 <KpiCard label="Total reçu"    value={fmt(k.paye) + ' FCFA'}              color="amber" small />
-                <KpiCard label="Reste dû"      value={fmt(k.solde) + ' FCFA'}             color="red" small />
+                <KpiCard label="Restant dû"      value={fmt(k.solde) + ' FCFA'}             color="red" small />
               </div>
             )
           })()}
@@ -431,7 +431,7 @@ export default function RecapCotisationsPage() {
                         <th className="px-4 py-2 text-left uppercase tracking-wide">Membre</th>
                         <th className={`px-3 py-2 text-right ${tintHead}`}>Attendu</th>
                         <th className={`px-3 py-2 text-right ${tintHead}`}>Reçu</th>
-                        <th className={`px-3 py-2 text-right ${tintHead}`}>Reste dû</th>
+                        <th className={`px-3 py-2 text-right ${tintHead}`}>Restant dû</th>
                         <th className="px-3 py-2 text-right">Taux</th>
                         <th className="px-3 py-2 text-center">Statut</th>
                       </tr>
@@ -640,7 +640,7 @@ function SectionCard({ title, color, attendu, recu, solde }) {
           <p className="text-sm font-bold text-green-700">{fmt(recu)}</p>
         </div>
         <div>
-          <p className={`text-xs ${c.label} font-medium`}>Reste dû</p>
+          <p className={`text-xs ${c.label} font-medium`}>Restant dû</p>
           <p className={`text-sm font-bold ${solde > 0 ? 'text-red-600' : 'text-gray-400'}`}>{fmt(solde)}</p>
         </div>
       </div>

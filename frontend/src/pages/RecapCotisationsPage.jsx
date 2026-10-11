@@ -93,12 +93,13 @@ export default function RecapCotisationsPage() {
       const MOIS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
       const KEYS = ['jan','fev','mar','avr','mai','jun','jul','aou','sep','oct','nov','dec_']
       const LABEL = { paid: 'Payé', partial: 'Part.', unpaid: 'Impayé', future: '', na: '—' }
+      // Couleur sur le libellé uniquement, sans fond de cellule
       const FILL  = {
-        paid:    { fillColor: [34, 197, 94],  textColor: [255, 255, 255] },
-        partial: { fillColor: [250, 204, 21], textColor: [0, 0, 0] },
-        unpaid:  { fillColor: [239, 68, 68],  textColor: [255, 255, 255] },
-        future:  { fillColor: [243, 244, 246], textColor: [156, 163, 175] },
-        na:      { fillColor: [249, 250, 251], textColor: [209, 213, 219] },
+        paid:    { textColor: [21, 128, 61],  fontStyle: 'bold' },
+        partial: { textColor: [161, 98, 7],   fontStyle: 'bold' },
+        unpaid:  { textColor: [220, 38, 38],  fontStyle: 'bold' },
+        future:  { textColor: [156, 163, 175] },
+        na:      { textColor: [209, 213, 219] },
       }
 
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
@@ -110,7 +111,7 @@ export default function RecapCotisationsPage() {
       doc.setTextColor(100)
       doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 14, 20)
       doc.setTextColor(0)
-      doc.text('Payé : vert   |   Partiel : jaune   |   Impayé : rouge   |   À venir : vide   |   — : avant le début des cotisations', 14, 26)
+      doc.text('Payé : vert   |   Partiel : ambre   |   Impayé : rouge   |   À venir : vide   |   — : avant le début des cotisations', 14, 26)
 
       autoTable(doc, {
         startY: 31,

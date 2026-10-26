@@ -26,6 +26,7 @@ import MesCotisations       from './pages/portail/MesCotisations'
 import EvenementsPortail    from './pages/portail/Evenements'
 import AnnoncesPortail      from './pages/portail/Annonces'
 import MonProfil            from './pages/portail/MonProfil'
+import GuidePage            from './pages/GuidePage'
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, user } = useAuth()
@@ -66,6 +67,7 @@ function App() {
             <Route path="annonces"          element={<AnnoncesPage />} />
             <Route path="finances"          element={<FinancePage />} />
             <Route path="parametres"        element={<SettingsPage />} />
+            <Route path="guide"             element={<GuidePage />} />
             <Route path="admin/reference"    element={<AdminRoute><ReferenceDataPage /></AdminRoute>} />
             <Route path="admin/utilisateurs" element={<AdminRoute><UsersPage /></AdminRoute>} />
           </Route>

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nafa — Guide utilisateur complet</title>
+<style>
+  :root {
+    --blue-900: #1e3a8a; --blue-800: #1e40af; --blue-700: #1d4ed8; --blue-600: #2563eb; --blue-50: #eff6ff;
+    --gray-900: #111827; --gray-700: #374151; --gray-500: #6b7280; --gray-300: #d1d5db;
+    --gray-200: #e5e7eb; --gray-50: #f9fafb;
+    --green: #16a34a; --amber: #d97706; --red: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    color: var(--gray-900); background: #fff; line-height: 1.6; font-size: 15px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px; }
+
+  .cover { background: linear-gradient(160deg, var(--blue-900), var(--blue-700)); color: #fff; padding: 72px 0 56px; }
+  .cover h1 { font-size: 40px; margin: 0 0 8px; letter-spacing: -0.5px; }
+  .cover p.sub { font-size: 18px; opacity: .9; margin: 0 0 24px; }
+  .cover .meta { font-size: 13px; opacity: .75; }
+
+  nav.toc { background: var(--blue-50); border: 1px solid #bfdbfe; border-radius: 12px; padding: 20px 24px; margin: 32px 0; }
+  nav.toc h2 { margin: 0 0 10px; font-size: 16px; color: var(--blue-800); }
+  nav.toc ol { margin: 0; padding-left: 20px; columns: 2; }
+  nav.toc li { margin: 4px 0; break-inside: avoid; }
+  nav.toc a { color: var(--blue-700); text-decoration: none; }
+
+  h2.section {
+    font-size: 24px; color: var(--blue-800); border-bottom: 3px solid var(--blue-600);
+    padding-bottom: 6px; margin: 48px 0 18px; page-break-after: avoid;
+  }
+  h3 { font-size: 17px; color: var(--gray-900); margin: 26px 0 8px; page-break-after: avoid; }
+  h4 { font-size: 15px; color: var(--gray-700); margin: 18px 0 6px; page-break-after: avoid; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+
+  .callout { border-left: 4px solid var(--blue-600); background: var(--blue-50); padding: 12px 16px; border-radius: 6px; margin: 16px 0; font-size: 14px; page-break-inside: avoid; }
+  .callout.warn { border-color: var(--amber); background: #fffbeb; }
+  .callout.ok   { border-color: var(--green); background: #f0fdf4; }
+  .callout strong { display: block; margin-bottom: 2px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; page-break-inside: avoid; }
+  th, td { border: 1px solid var(--gray-200); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--gray-50); font-weight: 600; color: var(--gray-700); }
+
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .p-green  { background: #dcfce7; color: #15803d; }
+  .p-yellow { background: #fef9c3; color: #a16207; }
+  .p-red    { background: #fee2e2; color: #b91c1c; }
+  .p-gray   { background: #f3f4f6; color: #6b7280; }
+  .p-blue   { background: #dbeafe; color: #1d4ed8; }
+
+  .cells { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 18px; }
+  .cell { width: 96px; padding: 10px 6px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: 600; }
+  .cell b { display: block; font-size: 18px; margin-bottom: 2px; }
+  .c-paid { background: var(--green); color: #fff; }
+  .c-partial { background: #facc15; color: #111827; }
+  .c-unpaid { background: var(--red); color: #fff; }
+  .c-future { background: #f3f4f6; color: #9ca3af; }
+  .c-na { background: #f9fafb; color: #d1d5db; border: 1px solid #e5e7eb; }
+
+  figure { margin: 14px 0 22px; page-break-inside: avoid; }
+  figure img { display: block; width: 100%; height: auto; border: 1px solid var(--gray-300); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  figure figcaption { font-size: 12.5px; color: var(--gray-500); margin-top: 6px; font-style: italic; }
+  kbd { background: #f3f4f6; border: 1px solid #d1d5db; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 13px; font-family: inherit; }
+
+  .footer { margin: 56px 0 24px; padding-top: 16px; border-top: 1px solid var(--gray-200); color: var(--gray-500); font-size: 12px; text-align: center; }
+
+  @page { size: A4; margin: 16mm; }
+  @media print {
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { font-size: 12.5px; }
+    h2.section { page-break-before: always; }
+    nav.toc { page-break-after: always; }
+    .cells .cell, .pill, .callout { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  @media (max-width: 640px) {
+    .cover h1 { font-size: 30px; }
+    nav.toc ol { columns: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <div class="wrap">
+    <h1>Nafa</h1>
+    <p class="sub">Guide utilisateur complet — gestion associative</p>
+    <div class="meta">Version 1.0 · Octobre 2026 · Destiné aux membres des bureaux, trésoriers, secrétaires et administrateurs</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<nav class="toc">
+  <h2>Sommaire</h2>
+  <ol>
+    <li><a href="#s0">Présentation et premiers pas</a></li>
+    <li><a href="#s1">Connexion et compte</a></li>
+    <li><a href="#s2">Tableau de bord</a></li>
+    <li><a href="#s3">Membres</a></li>
+    <li><a href="#s4">Cotisations mensuelles</a></li>
+    <li><a href="#s5">Cotisations exceptionnelles</a></li>
+    <li><a href="#s6">Récapitulatif annuel</a></li>
+    <li><a href="#s7">Prêts</a></li>
+    <li><a href="#s8">Événements</a></li>
+    <li><a href="#s9">Annonces</a></li>
+    <li><a href="#s10">Finances</a></li>
+    <li><a href="#s11">Paramètres</a></li>
+    <li><a href="#s12">Administration</a></li>
+    <li><a href="#s13">Espace membre (portail)</a></li>
+    <li><a href="#s14">Références et numérotation</a></li>
+    <li><a href="#s15">Questions fréquentes</a></li>
+    <li><a href="#s16">Points connus et limites</a></li>
+    <li><a href="#s17">Glossaire</a></li>
+  </ol>
+</nav>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s0">1. Présentation et premiers pas</h2>
+<p>Nafa est l'outil de gestion de l'association. Il permet de suivre les membres, de pointer les cotisations mensuelles, de gérer les appels de fonds exceptionnels, les prêts, les événements, les annonces et la caisse.</p>
+
+<h3>1.1 Ce dont vous avez besoin</h3>
+<ul>
+  <li>Un navigateur récent (Chrome, Edge, Firefox ou Safari).</li>
+  <li>L'adresse de l'application, communiquée par l'administrateur.</li>
+  <li>Un identifiant (adresse e-mail ou numéro de téléphone) et un mot de passe, créés par l'administrateur.</li>
+</ul>
+
+<h3>1.2 Vos droits dépendent de votre rôle</h3>
+<p>Ce guide décrit toutes les fonctions. Selon votre rôle, certaines actions ne sont pas proposées. Si un bouton vous manque, c'est normal : demandez à l'administrateur si vous pensez en avoir besoin.</p>
+<table>
+  <tr><th>Rôle</th><th>Ce que vous pouvez faire</th></tr>
+  <tr><td><span class="pill" style="background:#ede9fe;color:#6d28d9">Administrateur</span></td><td>Tout, y compris la gestion des comptes utilisateurs, des données de référence, des paramètres et l'annulation de paiements.</td></tr>
+  <tr><td><span class="pill p-green">Trésorier</span></td><td>Encaissements, prêts, dépenses, dons, annulation de paiements, paramètres financiers.</td></tr>
+  <tr><td><span class="pill p-blue">Secrétaire</span></td><td>Membres, événements, annonces. Consultation des finances.</td></tr>
+  <tr><td><span class="pill p-gray">Lecteur</span></td><td>Consultation uniquement, sans modification.</td></tr>
+  <tr><td><span class="pill" style="background:#ffedd5;color:#c2410c">Membre</span></td><td>Accès à l'espace membre uniquement (voir section 13).</td></tr>
+</table>
+
+<h3>1.3 Organisation de l'écran</h3>
+<figure>
+  <img src="captures/guide/02-tableau-de-bord.png" alt="Tableau de bord : menu à gauche, barre du haut et indicateurs">
+  <figcaption>Tableau de bord : menu à gauche, barre du haut et indicateurs</figcaption>
+</figure>
+<ul>
+  <li><strong>Menu à gauche</strong> (fond bleu) : les grandes rubriques. Sur téléphone, il s'ouvre avec le bouton <strong>≡</strong> en haut à gauche.</li>
+  <li><strong>Barre du haut</strong> : nom et devise de l'association, votre nom et votre rôle. Le menu de votre compte s'ouvre à droite.</li>
+  <li><strong>Zone centrale</strong> : le contenu de la page, avec son titre, ses indicateurs, ses filtres et sa liste.</li>
+</ul>
+
+<h3>1.4 Bonnes pratiques</h3>
+<div class="callout ok"><strong>Conseils</strong>
+  Vérifiez toujours le montant et le membre avant d'enregistrer un paiement. Une annulation est possible, mais elle laisse une trace : mieux vaut saisir juste du premier coup.
+</div>
+<ul>
+  <li>Enregistrez les paiements le jour où ils sont reçus.</li>
+  <li>Renseignez le motif de toute annulation de façon précise (« Chèque sans provision », « Erreur de membre »).</li>
+  <li>Gardez les références des reçus (REC-, CEX-, DON-) : elles permettent de retrouver chaque opération.</li>
+  <li>Ne partagez jamais votre mot de passe, même avec un autre membre du bureau.</li>
+</ul>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s1">2. Connexion et compte</h2>
+
+<h3>2.1 Se connecter</h3>
+<figure>
+  <img src="captures/guide/01-connexion.png" alt="Page de connexion">
+  <figcaption>Page de connexion</figcaption>
+</figure>
+<ol>
+  <li>Ouvrez l'adresse de l'application.</li>
+  <li>Saisissez votre <strong>adresse e-mail ou votre numéro de téléphone</strong>.</li>
+  <li>Saisissez votre mot de passe, puis cliquez sur <strong>Se connecter</strong>.</li>
+</ol>
+<p>En cas d'erreur, le message « Email ou mot de passe incorrect » s'affiche. Vérifiez la saisie, puis recommencez. Après plusieurs échecs, contactez l'administrateur.</p>
+
+<h3>2.2 Mot de passe oublié</h3>
+<div class="callout warn"><strong>Attention</strong>
+  Le lien « Mot de passe oublié ? » est visible sur la page de connexion, mais il ne déclenche pas encore de réinitialisation automatique. Pour récupérer l'accès, demandez à l'administrateur de réinitialiser votre mot de passe depuis <em>Administration → Utilisateurs</em>.
+</div>
+
+<h3>2.3 Changer son mot de passe</h3>
+<p>Depuis l'espace membre (<em>Mon profil → Modifier mot de passe</em>), il est possible de changer son mot de passe : saisissez l'actuel, puis le nouveau deux fois. Pour les comptes de gestion, demandez à l'administrateur de le modifier.</p>
+
+<h3>2.4 Se déconnecter</h3>
+<p>Ouvrez le menu de votre compte en haut à droite, puis choisissez <strong>Déconnexion</strong>.</p>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s2">3. Tableau de bord</h2>
+<p>Le tableau de bord donne l'état général de l'association en un coup d'œil. Il se met à jour automatiquement ; vous n'avez rien à saisir ici.</p>
+
+<h3>3.1 Les quatre indicateurs</h3>
+<table>
+  <tr><th>Indicateur</th><th>Ce qu'il mesure</th></tr>
+  <tr><td><strong>Solde de caisse</strong></td><td>Argent disponible à la date, pour l'exercice en cours.</td></tr>
+  <tr><td><strong>Recouvrement</strong></td><td>Part des cotisations attendues qui ont été payées.</td></tr>
+  <tr><td><strong>Membres</strong></td><td>Nombre de membres actifs, et total de la liste en sous-titre.</td></tr>
+  <tr><td><strong>Créances</strong></td><td>Montant des cotisations restées impayées ou partielles.</td></tr>
+</table>
+
+<h3>3.2 Les graphiques</h3>
+<ul>
+  <li><strong>Recettes vs Dépenses</strong> : comparaison mois par mois de l'année choisie.</li>
+  <li><strong>Répartition dépenses</strong> : montant dépensé par catégorie, du plus élevé au plus faible.</li>
+  <li><strong>Répartition recettes</strong> : part de chaque origine de recette (cotisations, dons, remboursements de prêts…).</li>
+</ul>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s3">4. Membres</h2>
+<p>La page <strong>Membres</strong> recense toutes les personnes de l'association. Chaque membre reçoit un matricule unique, de la forme <code>MBR-2026-008</code>.</p>
+
+<h3>4.1 Rechercher et filtrer</h3>
+<figure>
+  <img src="captures/guide/03-membres.png" alt="Liste des membres, avec recherche et filtre de statut">
+  <figcaption>Liste des membres, avec recherche et filtre de statut</figcaption>
+</figure>
+<ul>
+  <li>Le champ <strong>Rechercher…</strong> filtre la liste pendant la frappe. Il s'applique au nom, à l'alias et au matricule.</li>
+  <li>Le filtre de statut affiche les membres <em>actifs</em>, <em>inactifs</em> ou <em>suspendus</em>.</li>
+  <li>Cliquez sur un membre pour ouvrir sa fiche en modification.</li>
+</ul>
+
+<h3>4.2 Créer un membre</h3>
+<figure>
+  <img src="captures/guide/04-membres-nouveau.png" alt="Fenêtre de création d'un membre">
+  <figcaption>Fenêtre de création d'un membre</figcaption>
+</figure>
+<ol>
+  <li>Cliquez sur <strong>+ Nouveau membre</strong>.</li>
+  <li>Renseignez les champs (voir tableau ci-dessous). Les champs marqués <strong>*</strong> sont obligatoires.</li>
+  <li>Cliquez sur <strong>Enregistrer</strong>. Le matricule est attribué automatiquement.</li>
+</ol>
+<table>
+  <tr><th>Champ</th><th>Obligatoire</th><th>Conseil</th></tr>
+  <tr><td>Nom</td><td>Oui</td><td>Nom de famille, en majuscules recommandé.</td></tr>
+  <tr><td>Prénom</td><td>Oui</td><td></td></tr>
+  <tr><td>Alias / Surnom</td><td>Non</td><td>Affiché entre parenthèses : « DIALLO Mamadou (Petit) ».</td></tr>
+  <tr><td>Téléphone</td><td>Oui</td><td>Sert aux notifications SMS et WhatsApp. Un même numéro ne peut pas être attribué à deux membres.</td></tr>
+  <tr><td>Téléphone 2</td><td>Non</td><td>Second numéro, utile en cas d'indisponibilité.</td></tr>
+  <tr><td>E-mail</td><td>Non</td><td>Doit être unique si renseigné.</td></tr>
+  <tr><td>Date d'adhésion</td><td>Non</td><td>Date d'entrée dans l'association. Elle peut servir de seuil de cotisation (voir section 11).</td></tr>
+  <tr><td>Statut</td><td>Oui</td><td>Actif, inactif ou suspendu. Seuls les membres actifs reçoivent les nouveaux appels de fonds.</td></tr>
+  <tr><td>Rôle</td><td>Non</td><td>Fonction au sein de l'association : Président, Vice-Président, Trésorier, Secrétaire, Membre, Auditeur.</td></tr>
+  <tr><td>Lieu d'habitation, Emploi / Profession</td><td>Non</td><td>Informations complémentaires.</td></tr>
+  <tr><td>Commentaires</td><td>Non</td><td>Notes internes, visibles uniquement par les gestionnaires.</td></tr>
+</table>
+
+<h3>4.3 Créer un compte utilisateur pour un membre</h3>
+<p>Dans la fiche du membre, la section <strong>Créer un compte utilisateur</strong> permet de lui donner accès à l'application. Renseignez :</p>
+<ul>
+  <li>un <strong>mot de passe</strong> (au moins 8 caractères) ;</li>
+  <li>un <strong>rôle utilisateur</strong> (voir section 1.2). Un membre ordinaire reçoit le rôle <em>Membre</em> et accède au portail.</li>
+</ul>
+<p>Le message « Membre mis à jour et compte utilisateur créé » confirme l'opération. Si la création du compte échoue, la fiche du membre reste enregistrée et un avertissement s'affiche.</p>
+
+<h3>4.4 Modifier un membre</h3>
+<p>Ouvrez la fiche, modifiez les champs utiles, puis enregistrez. Le matricule ne change jamais.</p>
+<div class="callout"><strong>Supprimer ou suspendre ?</strong>
+  Un membre ne se supprime pas de l'application : son historique de cotisations doit rester lisible. Pour sortir un membre de la vie active, passez son <strong>statut</strong> à <em>inactif</em> ou <em>suspendu</em>.
+</div>
+
+<h3>4.5 Carte de membre</h3>
+<p>Depuis la liste, ouvrez <strong>Voir la carte</strong> pour afficher la carte du membre : nom complet, matricule, rôle, statut, téléphone et date d'adhésion. Elle peut être exportée au format PDF.</p>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s4">5. Cotisations mensuelles</h2>
+<p>L'onglet <strong>Mensuel</strong> de la page <strong>Cotisations</strong> est la matrice de pointage : une ligne par membre, une colonne par mois de l'année.</p>
+
+<h3>5.1 Lire la matrice</h3>
+<figure>
+  <img src="captures/guide/05-cotisations-mensuel.png" alt="Matrice de pointage mensuel de l'année 2026">
+  <figcaption>Matrice de pointage mensuel de l'année 2026</figcaption>
+</figure>
+<div class="cells">
+  <div class="cell c-paid"><b>✓</b>Payé</div>
+  <div class="cell c-partial"><b>½</b>Partiel</div>
+  <div class="cell c-unpaid"><b>✗</b>Impayé</div>
+  <div class="cell c-future"><b>·</b>À venir</div>
+  <div class="cell c-na"><b>—</b>Avant le début des cotisations</div>
+</div>
+<ul>
+  <li>Choisissez l'année en haut de page.</li>
+  <li>Les cartes au-dessus de la matrice donnent le total attendu, le total payé, le reste dû et le taux de recouvrement de l'année.</li>
+  <li>La case <strong>—</strong> correspond aux mois antérieurs à la date de début des cotisations : ils n'entrent pas dans les calculs.</li>
+</ul>
+
+<h3>5.2 Enregistrer un paiement mensuel</h3>
+<figure>
+  <img src="captures/guide/18-cotisations-paiement-mensuel.png" alt="Fenêtre « Enregistrer un paiement » depuis la matrice mensuelle">
+  <figcaption>Fenêtre « Enregistrer un paiement » depuis la matrice mensuelle</figcaption>
+</figure>
+<ol>
+  <li>Repérez la case du membre et du mois : elle doit être <strong>✗ Impayé</strong> ou <strong>½ Partiel</strong>.</li>
+  <li>Cliquez sur la case. La fenêtre <strong>Enregistrer un paiement</strong> s'ouvre.</li>
+  <li>Saisissez le <strong>montant versé</strong>. Il peut être inférieur au montant dû (paiement partiel) ou égal.</li>
+  <li>Cliquez sur <strong>Enregistrer</strong>. La case devient verte si le montant est complet, jaune sinon.</li>
+</ol>
+<p>Un reçu portant une référence <code>REC-AAAA-MM-XXXXX</code> est généré automatiquement et la caisse est mise à jour.</p>
+
+<h3>5.3 Payer en avance</h3>
+<p>Si l'option <em>Autoriser le paiement des cotisations en avance</em> est activée dans les paramètres, une case <strong>À venir</strong> devient cliquable. Règle à respecter : <strong>on ne peut pas sauter un mois</strong>. Une case future n'est payable que si tous les mois précédents dus sont déjà réglés.</p>
+
+<h3>5.4 Annuler un paiement mensuel</h3>
+<p>L'annulation se fait depuis <strong>Finances</strong> (voir section 11.5), par un administrateur ou un trésorier. Elle exige un motif. Le paiement reste visible, barré, avec la mention « Annulé — nom de l'auteur », et n'entre plus dans les totaux.</p>
+
+<h3>5.5 Exporter</h3>
+<p>Le bouton <strong>⬇ CSV</strong> exporte les cotisations de l'année affichée, au format tableur.</p>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s5">6. Cotisations exceptionnelles</h2>
+<p>Une cotisation exceptionnelle est un <strong>appel de fonds ponctuel</strong> : mariage, décès, naissance, fête, projet… Elle est attribuée à un ou plusieurs membres avec une échéance optionnelle.</p>
+
+<h3>6.1 Créer un appel de fonds</h3>
+<figure>
+  <img src="captures/guide/07-cotisations-nouvel-appel.png" alt="Fenêtre « Nouvelle cotisation exceptionnelle »">
+  <figcaption>Fenêtre « Nouvelle cotisation exceptionnelle »</figcaption>
+</figure>
+<ol>
+  <li>Ouvrez <strong>Cotisations → Exceptionnel</strong>, puis cliquez sur <strong>+ Nouvelle cotisation exceptionnelle</strong>.</li>
+  <li>Saisissez le <strong>libellé</strong> (exemple : « Cotisation pour le mariage de… »).</li>
+  <li>Choisissez la <strong>source</strong> : un événement, une annonce, ou aucune (la source est obligatoire dans l'interface, choisissez celle qui correspond).</li>
+  <li>Choisissez le <strong>destinataire</strong> : <em>tous les membres actifs</em>, ou <em>un membre</em> précis.</li>
+  <li>Vérifiez le <strong>montant par membre</strong>. Il est pré-rempli à partir du budget de la source, ou du montant par défaut. Si vous le modifiez à la main, votre valeur est conservée, même si vous changez ensuite de source.</li>
+  <li>Indiquez une <strong>date d'échéance</strong> si nécessaire, puis cliquez sur <strong>Enregistrer</strong>.</li>
+</ol>
+<div class="callout warn"><strong>Montant total</strong>
+  Le montant saisi est le montant <em>par membre</em>. Pour 25 membres à 2 000, le total attendu est de 50 000.
+</div>
+
+<h3>6.2 Suivre un appel de fonds</h3>
+<figure>
+  <img src="captures/guide/06-cotisations-exceptionnel.png" alt="Onglet Exceptionnel : appels de fonds regroupés par source">
+  <figcaption>Onglet Exceptionnel : appels de fonds regroupés par source</figcaption>
+</figure>
+<p>La liste regroupe les appels par source (événement ou annonce). Cliquez sur un groupe pour ouvrir son détail :</p>
+<ul>
+  <li>un résumé : total dû, collecté, restant ;</li>
+  <li>la liste des membres, avec pour chacun <strong>À payer</strong> ou son statut ;</li>
+  <li>une zone de recherche pour retrouver un membre ;</li>
+  <li>un bouton <strong>Payer</strong> sur chaque ligne non soldée.</li>
+</ul>
+
+<h3>6.3 Enregistrer un paiement</h3>
+<figure>
+  <img src="captures/guide/20-exceptionnel-paiement-membre.png" alt="Paiement d'un appel de fonds, depuis le détail d'une source">
+  <figcaption>Paiement d'un appel de fonds, depuis le détail d'une source</figcaption>
+</figure>
+<ol>
+  <li>Cliquez sur <strong>Payer</strong> à côté du membre.</li>
+  <li>La fenêtre affiche le montant dû, le montant déjà payé et le reste.</li>
+  <li>Saisissez le <strong>montant versé</strong>. Il peut être libre : supérieur ou inférieur au solde restant.</li>
+  <li>Cliquez sur <strong>Valider</strong>. Le membre disparaît de « À payer » s'il est soldé, ou passe en partiel.</li>
+</ol>
+<p>Un reçu <code>CEX-AAAA-XXXXX</code> est généré et la caisse est mise à jour.</p>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s6">7. Récapitulatif annuel</h2>
+<p>L'onglet <strong>Récap</strong> de la page Cotisations fait la synthèse d'une année. Il sert aux bilans, aux relances et à l'information des membres.</p>
+
+<h3>7.1 Choisir l'année et la vue</h3>
+<figure>
+  <img src="captures/guide/08-recap-global.png" alt="Récapitulatif annuel, vue Global">
+  <figcaption>Récapitulatif annuel, vue Global</figcaption>
+</figure>
+<ul>
+  <li><strong>Année</strong> : la liste propose les années ayant des données.</li>
+  <li><strong>Global</strong> : mensuelles et exceptionnelles ensemble, avec le taux de recouvrement de l'association.</li>
+  <li><strong>Mensuelles</strong> : uniquement les cotisations mensuelles.</li>
+  <li><strong>Exceptionnelles</strong> : uniquement les appels de fonds exceptionnels.</li>
+</ul>
+
+<h3>7.2 Filtrer les membres</h3>
+<figure>
+  <img src="captures/guide/09-recap-mensuelles.png" alt="Récapitulatif annuel, vue Mensuelles">
+  <figcaption>Récapitulatif annuel, vue Mensuelles</figcaption>
+</figure>
+<p>Quatre filtres d'état : <strong>Tous</strong>, <strong>À jour</strong>, <strong>Partiel</strong>, <strong>Impayé</strong>. Ils s'appliquent à la vue choisie. Les totaux en bas de tableau se recalculent sur les membres affichés.</p>
+
+<h3>7.3 Exporter en PDF</h3>
+<ul>
+  <li>En vue <strong>Mensuelles</strong> : une matrice mois par mois, avec la colonne <em>Mois dû</em> (nombre de mois en retard par membre).</li>
+  <li>En vue <strong>Exceptionnelles</strong> : un tableau attendu, reçu, reste dû et statut.</li>
+  <li>En vue <strong>Global</strong> : le récapitulatif complet des deux types.</li>
+</ul>
+
+<h3>7.4 Diffuser par SMS ou WhatsApp</h3>
+<p>Les boutons <strong>SMS</strong> et <strong>WhatsApp</strong> envoient le récapitulatif de l'année. Sélectionnez des membres pour cibler, ou ne sélectionnez rien pour envoyer à tous. Une confirmation indique le nombre de destinataires avant l'envoi.</p>
+<div class="callout warn"><strong>Avant d'envoyer</strong>
+  L'envoi est définitif. Vérifiez l'année, la vue et la sélection. Les canaux doivent être activés dans <em>Paramètres → Finance &amp; Prêts</em>.
+</div>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s7">8. Prêts</h2>
+<p>Les prêts permettent à un membre d'emprunter une somme, remboursable par mensualités à un taux d'intérêt annuel.</p>
+
+<h3>8.1 Créer un prêt</h3>
+<figure>
+  <img src="captures/guide/11-prets-nouveau.png" alt="Fenêtre « Nouveau prêt »">
+  <figcaption>Fenêtre « Nouveau prêt »</figcaption>
+</figure>
+<ol>
+  <li>Ouvrez <strong>Prêts</strong>, puis cliquez sur <strong>+ Nouveau prêt</strong>.</li>
+  <li>Choisissez le <strong>membre</strong> (membres actifs uniquement).</li>
+  <li>Saisissez le <strong>montant</strong> en FCFA.</li>
+  <li>Vérifiez le <strong>taux annuel (%)</strong>. Il est pré-rempli à partir des paramètres.</li>
+  <li>Saisissez la <strong>durée en mois</strong> et la <strong>date de début</strong>.</li>
+  <li>Consultez la <strong>mensualité calculée</strong> en direct, puis cliquez sur <strong>Enregistrer</strong>.</li>
+</ol>
+<p>Le calcul utilise des mensualités constantes : chaque mois, le même montant est dû, une part rembourse le capital et l'autre part paie les intérêts.</p>
+
+<h3>8.2 Lire la liste des prêts</h3>
+<figure>
+  <img src="captures/guide/10-prets.png" alt="Liste des prêts">
+  <figcaption>Liste des prêts</figcaption>
+</figure>
+<p>Chaque prêt est présenté sous forme de carte, avec :</p>
+<ul>
+  <li>le nom du membre et le montant ;</li>
+  <li>une barre de progression et le nombre d'échéances payées sur le total (« 3/12 échéances payées ») ;</li>
+  <li>un statut : <span class="pill p-green">Actif</span>, <span class="pill p-red">En retard</span> ou <span class="pill p-gray">Soldé</span>.</li>
+</ul>
+<p>Filtrez par statut avec le sélecteur en haut de page.</p>
+
+<h3>8.3 Consulter l'échéancier</h3>
+<p>Cliquez sur un prêt pour ouvrir son <strong>tableau d'amortissement</strong> : numéro d'échéance, date, mensualité, capital, intérêts et capital restant dû.</p>
+
+<div class="callout warn"><strong>Limites actuelles</strong>
+  Le plafond de prêt défini dans les paramètres est enregistré, mais la création d'un prêt ne le contrôle pas encore. De même, l'enregistrement des remboursements d'échéances n'est pas proposé dans l'interface : voir la section 16.
+</div>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s8">9. Événements</h2>
+<figure>
+  <img src="captures/guide/12-evenements.png" alt="Page Événements">
+  <figcaption>Page Événements</figcaption>
+</figure>
+<p>La page <strong>Événements</strong> recense les réunions, assemblées, formations, célébrations et autres activités de l'association.</p>
+
+<h3>9.1 Créer un événement</h3>
+<ol>
+  <li>Cliquez sur <strong>+ Nouvel événement</strong>.</li>
+  <li>Renseignez le <strong>titre</strong>, le <strong>type</strong> (par exemple Assemblée Générale, Réunion, Formation, Célébration), la <strong>date de début</strong> et, si besoin, la <strong>date de fin</strong>.</li>
+  <li>Indiquez le <strong>lieu</strong> et une <strong>description</strong> si utile.</li>
+  <li>Le <strong>budget cotisation exceptionnelle</strong> est optionnel : c'est le montant par membre suggéré lors de la création d'un appel de fonds lié à cet événement.</li>
+  <li>Cliquez sur <strong>Enregistrer</strong>.</li>
+</ol>
+
+<h3>9.2 Statut de l'événement</h3>
+<p>Chaque événement a un statut (par défaut <em>planifié</em>). Mettez-le à jour au fil de l'organisation. Les statuts disponibles sont gérés dans les données de référence (section 12.2).</p>
+
+<h3>9.3 Participants</h3>
+<p>Ouvrez un événement pour gérer ses participants. Chaque participant a un statut :</p>
+<table>
+  <tr><th>Statut</th><th>Signification</th></tr>
+  <tr><td><span class="pill p-gray">Inscrit</span></td><td>Le membre a prévu de venir.</td></tr>
+  <tr><td><span class="pill p-green">Présent</span></td><td>Le membre était présent.</td></tr>
+  <tr><td><span class="pill p-red">Absent</span></td><td>Le membre était attendu mais n'est pas venu.</td></tr>
+</table>
+<p>Pour pointer les présences, passez chaque participant au statut correspondant. Si aucun participant n'est enregistré, le message « Aucun participant enregistré » s'affiche.</p>
+
+<h3>9.4 Partager sur WhatsApp</h3>
+<p>Le bouton <strong>Partager sur WhatsApp</strong> ouvre WhatsApp avec le texte de l'événement, prêt à être envoyé. Si un groupe WhatsApp est configuré dans les paramètres, le partage l'utilise en priorité. Si le partage manuel est désactivé dans les paramètres, le bouton indique « Partage désactivé ».</p>
+
+<h3>9.5 Modifier un événement</h3>
+<p>Ouvrez l'événement, cliquez sur <strong>Modifier</strong>, puis enregistrez. Il n'existe pas de bouton de suppression : pour retirer un événement de la liste, changez son statut ou demandez à l'administrateur.</p>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s9">10. Annonces</h2>
+<figure>
+  <img src="captures/guide/13-annonces.png" alt="Page Annonces">
+  <figcaption>Page Annonces</figcaption>
+</figure>
+<p>Les annonces informent les membres d'un événement familial ou associatif : mariage, décès, baptême, naissance, anniversaire, réunion, autre.</p>
+
+<h3>10.1 Créer une annonce</h3>
+<ol>
+  <li>Cliquez sur <strong>+ Nouvelle annonce</strong>.</li>
+  <li>Choisissez le <strong>type d'annonce</strong> (obligatoire).</li>
+  <li>Renseignez le <strong>titre</strong> (obligatoire).</li>
+  <li>Indiquez le <strong>membre concerné</strong> si l'annonce porte sur quelqu'un (le marié, le défunt…). Sinon, laissez « Aucun (externe) ».</li>
+  <li>Indiquez la <strong>date de l'événement</strong> si elle est connue.</li>
+  <li>Rédigez le <strong>message SMS / WhatsApp</strong> (obligatoire). Visez moins de 160 caractères pour un SMS.</li>
+  <li>Le <strong>budget cotisation exceptionnelle</strong> est optionnel : il sert de montant suggéré pour un appel de fonds lié.</li>
+  <li>Enregistrez.</li>
+</ol>
+
+<h3>10.2 Publier et diffuser</h3>
+<ol>
+  <li>Dans l'annonce, choisissez les <strong>destinataires</strong> : « Tous les membres actifs » ou « Sélection manuelle » (vous cochez alors les membres concernés).</li>
+  <li>Cliquez sur <strong>Publier</strong>. Les envois SMS et WhatsApp partent pour les canaux activés dans les paramètres.</li>
+  <li>Le suivi affiche, pour l'annonce, le nombre de messages envoyés par SMS et par WhatsApp.</li>
+</ol>
+<p>L'envoi est automatique et s'effectue en arrière-plan : il peut prendre quelques instants pour une liste importante. Un envoi publié ne peut pas être annulé.</p>
+
+<h3>10.3 Partage manuel</h3>
+<p>Le bouton <strong>Partager sur WhatsApp</strong> ouvre WhatsApp avec le texte de l'annonce, pour une diffusion faite par vous-même (par exemple dans le groupe de l'association).</p>
+
+<div class="callout ok"><strong>Bon réflexe</strong>
+  Relisez le message et les destinataires avant de publier. Une annonce publiée part immédiatement.
+</div>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s10">11. Finances</h2>
+<figure>
+  <img src="captures/guide/14-finances.png" alt="Page Finances : caisse et mouvements">
+  <figcaption>Page Finances : caisse et mouvements</figcaption>
+</figure>
+<p>La page <strong>Finances</strong> présente la caisse de l'exercice et l'ensemble des mouvements : recettes et dépenses.</p>
+
+<h3>11.1 Lire la caisse</h3>
+<ul>
+  <li><strong>Solde de caisse</strong> : argent disponible à la date.</li>
+  <li><strong>Recettes</strong> et <strong>Dépenses</strong> de l'année, en cartes.</li>
+  <li>Le tableau des mouvements liste chaque opération, avec sa date, son libellé, son montant, sa référence et son auteur.</li>
+</ul>
+<p>Filtrez par <strong>Tous</strong>, <strong>Recettes</strong> ou <strong>Dépenses</strong>. Les mouvements annulés apparaissent barrés et ne comptent plus dans les totaux.</p>
+
+<h3>11.2 Enregistrer un don</h3>
+<ol>
+  <li>Cliquez sur <strong>Don</strong>.</li>
+  <li>Indiquez le <strong>donateur</strong> : un membre (liste) ou une personne extérieure (saisie du nom).</li>
+  <li>Saisissez le <strong>montant</strong> et la <strong>date du don</strong>.</li>
+  <li>Précisez le <strong>motif / observation</strong>, un <strong>événement lié</strong> si le don concerne un événement, et la <strong>référence de pièce justificative</strong> si vous en avez une.</li>
+  <li>Enregistrez. Un reçu <code>DON-AAAA-XXXXX</code> est généré et la caisse est augmentée.</li>
+</ol>
+
+<h3>11.3 Enregistrer une dépense</h3>
+<ol>
+  <li>Cliquez sur <strong>Dépense</strong>.</li>
+  <li>Choisissez la <strong>catégorie</strong> (obligatoire) : fournitures, transport, communication, événements, décaissement de prêt…</li>
+  <li>Saisissez le <strong>libellé</strong> (obligatoire), le <strong>montant</strong>, la <strong>date</strong>, le <strong>bénéficiaire</strong> et la <strong>référence de pièce justificative</strong>.</li>
+  <li>Enregistrez.</li>
+</ol>
+<div class="callout"><strong>Solde insuffisant</strong>
+  Une dépense ne peut pas dépasser le solde disponible de la caisse. Si le message d'erreur apparaît, vérifiez le solde ou enregistrez d'abord les recettes manquantes.
+</div>
+
+<h3>11.4 Décaissement de prêt</h3>
+<p>Créer un prêt ne crée <strong>pas</strong> de mouvement de caisse. Le versement au membre doit être enregistré à part, comme une dépense de la catégorie <em>Décaissement prêt</em>. De même, les remboursements ne sont pas enregistrés automatiquement dans la caisse (voir section 17).</p>
+
+<h3>11.5 Annuler un paiement</h3>
+<figure>
+  <img src="captures/guide/19-finances-annulation.png" alt="Fenêtre « Annuler ce paiement » : motif obligatoire">
+  <figcaption>Fenêtre « Annuler ce paiement » : motif obligatoire</figcaption>
+</figure>
+<ol>
+  <li>Dans le tableau des mouvements, repérez la ligne à annuler (cotisation mensuelle, cotisation exceptionnelle ou don).</li>
+  <li>Cliquez sur le bouton d'annulation de la ligne. Ce bouton n'apparaît que pour les administrateurs et les trésoriers.</li>
+  <li>Saisissez le <strong>motif de l'annulation</strong> (obligatoire) et confirmez.</li>
+</ol>
+<p>Le mouvement reste visible, barré, avec son motif et le nom de la personne qui l'a annulé. L'opération n'est pas effacée : c'est une trace, pas une suppression. Les dépenses ne sont pas annulables depuis cet écran.</p>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s11">12. Paramètres</h2>
+<p>La page <strong>Paramètres</strong> est organisée en quatre onglets. Certaines valeurs conditionnent le fonctionnement de l'application : modifiez-les avec précaution.</p>
+
+<h3>12.1 Identité</h3>
+<figure>
+  <img src="captures/guide/15-parametres-identite.png" alt="Paramètres, onglet Identité">
+  <figcaption>Paramètres, onglet Identité</figcaption>
+</figure>
+<ul>
+  <li><strong>Nom de l'association</strong>, slogan, adresse du siège, téléphone, e-mail de contact, site web.</li>
+  <li><strong>Date de création</strong> (date légale) et <strong>date de début d'activité</strong> (date réelle de démarrage).</li>
+  <li><strong>Logo</strong> : PNG, JPG ou SVG, 2 Mo maximum, 256 × 256 px recommandé.</li>
+</ul>
+
+<h3>12.2 Finance &amp; Prêts</h3>
+<table>
+  <tr><th>Réglage</th><th>Effet</th></tr>
+  <tr><td>Devise</td><td>Affichée à côté des montants (FCFA par défaut).</td></tr>
+  <tr><td>Cotisation mensuelle</td><td>Montant par défaut proposé pour chaque cotisation mensuelle. Ne modifie pas les cotisations déjà créées.</td></tr>
+  <tr><td>Exercice en cours</td><td>Année utilisée pour la caisse et les totaux du tableau de bord.</td></tr>
+  <tr><td>Date de début des cotisations</td><td>Les mois antérieurs apparaissent « — » et ne comptent pas dans les totaux.</td></tr>
+  <tr><td>Tenir compte de la date d'adhésion par membre</td><td>Si activé, chaque membre n'est redevable qu'à partir de sa propre date d'adhésion (ou de la date de début, si elle est plus tardive).</td></tr>
+  <tr><td>Autoriser le paiement des cotisations en avance</td><td>Permet de payer les mois à venir, sans sauter de mois (section 5.3).</td></tr>
+  <tr><td>Taux d'intérêt par défaut</td><td>Pré-rempli lors de la création d'un prêt.</td></tr>
+  <tr><td>Plafond de prêt</td><td>Montant maximum de prêt. Enregistré, mais non contrôlé à la création (section 16).</td></tr>
+  <tr><td>Diffusion SMS / WhatsApp</td><td>Active ou désactive l'envoi automatique des annonces et des récapitulatifs par canal.</td></tr>
+  <tr><td>Lien groupe WhatsApp</td><td>Lien utilisé par le partage WhatsApp des événements et annonces.</td></tr>
+  <tr><td>Partage WhatsApp manuel</td><td>Affiche ou masque le bouton de partage manuel.</td></tr>
+</table>
+
+<h3>12.3 Règlement intérieur</h3>
+<p>Vous pouvez déposer le règlement intérieur au format PDF (10 Mo maximum) et saisir son texte de référence. Ces éléments sont enregistrés dans l'application, mais l'espace membre ne propose pas encore de les consulter (voir section 17).</p>
+
+<h3>12.4 Système</h3>
+<p>Cet onglet affiche la version de la plateforme et la date de dernière mise à jour. Il est réservé aux administrateurs.</p>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s12">13. Administration</h2>
+<p>Ces pages ne sont visibles que pour les administrateurs.</p>
+
+<h3>13.1 Utilisateurs</h3>
+<figure>
+  <img src="captures/guide/16-admin-utilisateurs.png" alt="Administration : liste des utilisateurs">
+  <figcaption>Administration : liste des utilisateurs</figcaption>
+</figure>
+<ul>
+  <li><strong>Créer un compte</strong> : nom, adresse e-mail, rôle, mot de passe initial.</li>
+  <li><strong>Modifier</strong> : changer le rôle, le nom, l'e-mail ou réinitialiser le mot de passe (le champ reste vide si l'on ne veut pas le changer).</li>
+  <li><strong>Désactiver</strong> : un compte désactivé ne peut plus se connecter. Ses actions passées restent enregistrées.</li>
+  <li><strong>Supprimer</strong> : à réserver aux comptes créés par erreur.</li>
+</ul>
+
+<h3>13.2 Données de référence</h3>
+<figure>
+  <img src="captures/guide/17-admin-donnees-reference.png" alt="Administration : données de référence">
+  <figcaption>Administration : données de référence</figcaption>
+</figure>
+<p>Ces listes alimentent les formulaires. Chaque liste peut être consultée, complétée et corrigée :</p>
+<table>
+  <tr><th>Liste</th><th>Utilisée pour</th></tr>
+  <tr><td>Rôles des membres</td><td>Fonction au sein de l'association</td></tr>
+  <tr><td>Rôles utilisateurs</td><td>Droits d'accès à l'application</td></tr>
+  <tr><td>Catégories de dépenses</td><td>Classement des dépenses et graphiques</td></tr>
+  <tr><td>Types d'événement</td><td>Type proposé à la création d'un événement</td></tr>
+  <tr><td>Types d'annonce</td><td>Type proposé à la création d'une annonce</td></tr>
+  <tr><td>Statuts membres, cotisations, prêts, événements, participants, diffusions</td><td>Libellés et couleurs des statuts affichés</td></tr>
+  <tr><td>Canaux de diffusion</td><td>Canaux proposés pour les annonces</td></tr>
+</table>
+<div class="callout warn"><strong>Précaution</strong>
+  Une valeur utilisée par des enregistrements ne peut pas être supprimée sans risque. Préférez la renommer ou la désactiver. Les statistiques d'usage indiquent les références encore utilisées.
+</div>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s13">14. Espace membre (portail)</h2>
+<figure>
+  <img src="captures/guide/21-portail-accueil.png" alt="Espace membre : accueil">
+  <figcaption>Espace membre : accueil</figcaption>
+</figure>
+<figure>
+  <img src="captures/guide/22-portail-cotisations.png" alt="Espace membre : mes cotisations">
+  <figcaption>Espace membre : mes cotisations</figcaption>
+</figure>
+<figure>
+  <img src="captures/guide/23-portail-profil.png" alt="Espace membre : mon profil">
+  <figcaption>Espace membre : mon profil</figcaption>
+</figure>
+<p>Un membre disposant d'un compte se connecte au même endroit, et arrive dans son espace personnel. Il voit ses propres informations, ainsi que deux indicateurs de l'association : le solde de caisse et les dernières dépenses. Il ne peut rien modifier dans la gestion.</p>
+<table>
+  <tr><th>Onglet</th><th>Contenu</th></tr>
+  <tr><td><strong>Accueil</strong></td><td>Ses indicateurs (cotisations versées, mois en retard, cotisations exceptionnelles en attente), la liste de ses mois en retard, et le solde de caisse avec les dernières dépenses de l'association.</td></tr>
+  <tr><td><strong>Cotisations</strong></td><td>Ses cotisations mensuelles et exceptionnelles, avec le montant dû et payé. Export CSV de ses lignes.</td></tr>
+  <tr><td><strong>Événements</strong></td><td>La liste des événements, en consultation.</td></tr>
+  <tr><td><strong>Annonces</strong></td><td>Les annonces publiées.</td></tr>
+  <tr><td><strong>Mon profil</strong></td><td>Ses coordonnées, et la modification de son mot de passe.</td></tr>
+</table>
+<div class="callout"><strong>Pour le membre</strong>
+  Si un chiffre vous semble faux, contactez le trésorier : seul le bureau peut corriger une cotisation.
+</div>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s14">15. Références et numérotation</h2>
+<p>Chaque opération financière reçoit une référence unique, utile pour les échanges avec les membres et les contrôles.</p>
+<table>
+  <tr><th>Préfixe</th><th>Opération</th><th>Exemple</th></tr>
+  <tr><td><code>REC-</code></td><td>Paiement d'une cotisation mensuelle</td><td><code>REC-2026-10-00042</code></td></tr>
+  <tr><td><code>CEX-</code></td><td>Paiement d'une cotisation exceptionnelle</td><td><code>CEX-2026-00117</code></td></tr>
+  <tr><td><code>DON-</code></td><td>Don</td><td><code>DON-2026-00008</code></td></tr>
+  <tr><td><code>MBR-</code></td><td>Matricule d'un membre</td><td><code>MBR-2026-008</code></td></tr>
+</table>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s15">16. Questions fréquentes</h2>
+
+<h3>Je me suis trompé de montant sur un paiement. Que faire ?</h3>
+<p>Si le paiement est récent et que vous avez les droits, annulez-le depuis <em>Finances</em> avec un motif clair, puis enregistrez le bon montant. Sinon, demandez à un trésorier ou à un administrateur.</p>
+
+<h3>Un membre n'apparaît pas dans la liste d'un appel de fonds.</h3>
+<p>Seuls les membres au statut <strong>actif</strong> reçoivent un nouvel appel de fonds. Vérifiez son statut dans sa fiche.</p>
+
+<h3>Le montant pré-rempli dans un appel de fonds ne me convient pas.</h3>
+<p>Modifiez-le à la main : votre saisie est conservée, même si vous changez de source ensuite.</p>
+
+<h3>Le récapitulatif affiche « Aucun membre trouvé ».</h3>
+<p>Le filtre d'état ou la recherche est peut-être trop restrictif. Cliquez sur <strong>Tous</strong>, ou changez la vue.</p>
+
+<h3>Une case de la matrice est grisée avec un tiret « — ».</h3>
+<p>Le mois est antérieur à la date de début des cotisations. Ce n'est pas une erreur, il n'est pas dû.</p>
+
+<h3>J'ai envoyé une annonce par erreur.</h3>
+<p>Une annonce publiée ne peut pas être rappelée. Informez le bureau : une correction peut être diffusée sous forme de nouvelle annonce.</p>
+
+<h3>Le bouton SMS ou WhatsApp n'apparaît pas.</h3>
+<p>Le canal est désactivé dans les paramètres (<em>Finance &amp; Prêts → Diffusion</em>). Demandez à un administrateur de l'activer.</p>
+
+<h3>Je ne peux pas modifier une valeur.</h3>
+<p>Votre rôle ne donne peut-être pas ce droit. Demandez à un administrateur de vérifier votre rôle.</p>
+
+<h3>La page ne se charge pas ou affiche une erreur.</h3>
+<ol>
+  <li>Rechargez la page (touche <kbd>F5</kbd>, ou <kbd>Ctrl</kbd>+<kbd>F5</kbd> pour vider le cache).</li>
+  <li>Vérifiez votre connexion internet.</li>
+  <li>Si le problème persiste, déconnectez-vous puis reconnectez-vous.</li>
+  <li>Si rien ne fonctionne, signalez à l'administrateur l'écran, l'heure et l'action effectuée.</li>
+</ol>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s16">17. Points connus et limites</h2>
+<p>Ces points sont signalés pour que vous ne soyez pas surpris. Ils sont suivis par l'équipe technique.</p>
+<table>
+  <tr><th>Sujet</th><th>Situation actuelle</th><th>Ce qu'il faut faire en attendant</th></tr>
+  <tr><td>Mot de passe oublié</td><td>Le lien est présent mais n'envoie pas encore de réinitialisation.</td><td>Demander à l'administrateur de le réinitialiser.</td></tr>
+  <tr><td>Remboursement des échéances de prêt</td><td>L'échéancier et l'avancement s'affichent, mais l'interface ne permet pas encore d'enregistrer un remboursement d'échéance.</td><td>Consigner les remboursements reçus en recette, et tenir le suivi à part.</td></tr>
+  <tr><td>Plafond de prêt</td><td>Enregistré dans les paramètres, non contrôlé à la création d'un prêt.</td><td>Vérifier le plafond manuellement avant chaque prêt.</td></tr>
+  <tr><td>Mot de passe pour les comptes de gestion</td><td>Seul l'espace membre propose le changement de mot de passe.</td><td>Demander à l'administrateur.</td></tr>
+  <tr><td>Suppression</td><td>Un membre ou un événement ne se supprime pas depuis l'interface.</td><td>Changer le statut, ou demander à l'administrateur.</td></tr>
+  <tr><td>Caisse et prêts</td><td>Créer un prêt, verser un prêt ou recevoir un remboursement ne crée pas de mouvement de caisse automatique.</td><td>Enregistrer le versement comme dépense (« Décaissement prêt ») et les remboursements comme recettes, à la main.</td></tr>
+  <tr><td>Règlement intérieur</td><td>Le PDF est enregistré, mais l'espace membre ne propose pas encore de le consulter.</td><td>Transmettre le document aux membres par un autre moyen.</td></tr>
+</table>
+
+<!-- ================================================================ -->
+<h2 class="section" id="s17">18. Glossaire</h2>
+<table>
+  <tr><th>Terme</th><th>Définition</th></tr>
+  <tr><td>Appel de fonds</td><td>Cotisation exceptionnelle demandée à un ou plusieurs membres pour un besoin précis.</td></tr>
+  <tr><td>Caisse</td><td>Argent disponible de l'association, pour un exercice donné.</td></tr>
+  <tr><td>Créances</td><td>Cotisations dues et non payées.</td></tr>
+  <tr><td>Échéancier</td><td>Tableau des mensualités d'un prêt, avec capital et intérêts.</td></tr>
+  <tr><td>Exercice</td><td>Période comptable, généralement une année, qui sert de référence aux totaux.</td></tr>
+  <tr><td>Grand livre</td><td>Journal de tous les mouvements de caisse, de l'origine à aujourd'hui.</td></tr>
+  <tr><td>Matricule</td><td>Identifiant unique d'un membre, attribué automatiquement.</td></tr>
+  <tr><td>Recouvrement</td><td>Part des cotisations attendues effectivement payées.</td></tr>
+  <tr><td>Reste dû</td><td>Montant attendu moins montant payé, pour un membre ou un ensemble.</td></tr>
+  <tr><td>Mois dû</td><td>Nombre de mois échus non payés ou partiellement payés, pour un membre.</td></tr>
+</table>
+
+<div class="footer">
+  Nafa — Guide utilisateur complet · Version 1.0 · À mettre à jour à chaque évolution fonctionnelle.
+</div>
+
+</main>
+</body>
+</html>

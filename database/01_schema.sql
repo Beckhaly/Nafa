@@ -55,7 +55,8 @@ INSERT INTO roles_utilisateurs (code, libelle, description) VALUES
     ('tresorier',   'Trésorier',       'Saisie et validation des opérations financières'),
     ('secretaire',  'Secrétaire',      'Gestion des membres et des événements'),
     ('lecteur',     'Lecteur',         'Consultation uniquement — aucune modification'),
-    ('membre',      'Membre',          'Portail membre — accès à ses propres données uniquement')
+    ('membre',      'Membre',          'Portail membre — accès à ses propres données uniquement'),
+    ('super_utilisateur', 'Super utilisateur', 'Mêmes droits que l''administrateur, sauf données de référence et gestion des utilisateurs')
 ON DUPLICATE KEY UPDATE libelle = VALUES(libelle);
 
 -- -----------------------------------------------------------------------------

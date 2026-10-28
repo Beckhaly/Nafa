@@ -45,7 +45,7 @@ export default function FinancePage() {
 
   const devise = settings?.devise ?? 'FCFA'
   const reload = () => setRefreshKey((k) => k + 1)
-  const canCancel = ['admin', 'tresorier'].includes(user?.role)
+  const canCancel = ['admin', 'super_utilisateur', 'tresorier'].includes(user?.role)
 
   /* load caisse + mouvements */
   useEffect(() => {

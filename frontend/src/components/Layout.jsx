@@ -52,6 +52,7 @@ const ADMIN_NAV = [
 
 const ROLE_LABELS = {
   admin:      { label: 'Administrateur', color: 'bg-purple-100 text-purple-700' },
+  super_utilisateur: { label: 'Super utilisateur', color: 'bg-indigo-100 text-indigo-700' },
   tresorier:  { label: 'Trésorier',      color: 'bg-green-100 text-green-700'  },
   secretaire: { label: 'Secrétaire',     color: 'bg-blue-100 text-blue-700'    },
   lecteur:    { label: 'Lecteur',        color: 'bg-gray-100 text-gray-600'    },

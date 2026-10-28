@@ -137,6 +137,7 @@
 <table>
   <tr><th>Rôle</th><th>Ce que vous pouvez faire</th></tr>
   <tr><td><span class="pill" style="background:#ede9fe;color:#6d28d9">Administrateur</span></td><td>Tout, y compris la gestion des comptes utilisateurs, des données de référence, des paramètres et l'annulation de paiements.</td></tr>
+  <tr><td><span class="pill" style="background:#e0e7ff;color:#4338ca">Super utilisateur</span></td><td>Les mêmes droits que l'administrateur, sauf la gestion des comptes utilisateurs et des données de référence. Il peut annuler des paiements.</td></tr>
   <tr><td><span class="pill p-green">Trésorier</span></td><td>Encaissements, prêts, dépenses, dons, annulation de paiements, paramètres financiers.</td></tr>
   <tr><td><span class="pill p-blue">Secrétaire</span></td><td>Membres, événements, annonces. Consultation des finances.</td></tr>
   <tr><td><span class="pill p-gray">Lecteur</span></td><td>Consultation uniquement, sans modification.</td></tr>
@@ -307,7 +308,7 @@
 <p>Si l'option <em>Autoriser le paiement des cotisations en avance</em> est activée dans les paramètres, une case <strong>À venir</strong> devient cliquable. Règle à respecter : <strong>on ne peut pas sauter un mois</strong>. Une case future n'est payable que si tous les mois précédents dus sont déjà réglés.</p>
 
 <h3>5.4 Annuler un paiement mensuel</h3>
-<p>L'annulation se fait depuis <strong>Finances</strong> (voir section 11.5), par un administrateur ou un trésorier. Elle exige un motif. Le paiement reste visible, barré, avec la mention « Annulé — nom de l'auteur », et n'entre plus dans les totaux.</p>
+<p>L'annulation se fait depuis <strong>Finances</strong> (voir section 11.5), par un administrateur, un super utilisateur ou un trésorier. Elle exige un motif. Le paiement reste visible, barré, avec la mention « Annulé — nom de l'auteur », et n'entre plus dans les totaux.</p>
 
 <h3>5.5 Exporter</h3>
 <p>Le bouton <strong>⬇ CSV</strong> exporte les cotisations de l'année affichée, au format tableur.</p>
@@ -551,7 +552,7 @@
 </figure>
 <ol>
   <li>Dans le tableau des mouvements, repérez la ligne à annuler (cotisation mensuelle, cotisation exceptionnelle ou don).</li>
-  <li>Cliquez sur le bouton d'annulation de la ligne. Ce bouton n'apparaît que pour les administrateurs et les trésoriers.</li>
+  <li>Cliquez sur le bouton d'annulation de la ligne. Ce bouton n'apparaît que pour les administrateurs, les super utilisateurs et les trésoriers.</li>
   <li>Saisissez le <strong>motif de l'annulation</strong> (obligatoire) et confirmez.</li>
 </ol>
 <p>Le mouvement reste visible, barré, avec son motif et le nom de la personne qui l'a annulé. L'opération n'est pas effacée : c'est une trace, pas une suppression. Les dépenses ne sont pas annulables depuis cet écran.</p>
@@ -671,7 +672,7 @@
 <h2 class="section" id="s15">16. Questions fréquentes</h2>
 
 <h3>Je me suis trompé de montant sur un paiement. Que faire ?</h3>
-<p>Si le paiement est récent et que vous avez les droits, annulez-le depuis <em>Finances</em> avec un motif clair, puis enregistrez le bon montant. Sinon, demandez à un trésorier ou à un administrateur.</p>
+<p>Si le paiement est récent et que vous avez les droits, annulez-le depuis <em>Finances</em> avec un motif clair, puis enregistrez le bon montant. Sinon, demandez à un trésorier, un super utilisateur ou un administrateur.</p>
 
 <h3>Un membre n'apparaît pas dans la liste d'un appel de fonds.</h3>
 <p>Seuls les membres au statut <strong>actif</strong> reçoivent un nouvel appel de fonds. Vérifiez son statut dans sa fiche.</p>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import api from '../api/client'
 import { useSettings } from '../context/SettingsContext'
+import { useAuth } from '../context/AuthContext'
 import Spinner from '../components/Spinner'
 
 const CURRENT_YEAR = new Date().getFullYear()
@@ -33,6 +34,8 @@ function Section({ title, icon, children }) {
 /* ── page ───────────────────────────────────────────────────── */
 export default function SettingsPage() {
   const { reload: reloadSettings } = useSettings()
+  const { user } = useAuth()
+  const canSystem = ['admin', 'super_utilisateur'].includes(user?.role)
   const [form, setForm]       = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving,  setSaving]  = useState(false)
@@ -156,7 +159,7 @@ export default function SettingsPage() {
     { k: 'finance',    label: 'Finance & Prêts',     icon: '💰' },
     { k: 'reglement',  label: 'Règlement intérieur', icon: '📋' },
     { k: 'systeme',    label: 'Système',             icon: '⚙️' },
-  ]
+  ].filter(({ k }) => k !== 'systeme' || canSystem)
 
   return (
     <div className="space-y-5">

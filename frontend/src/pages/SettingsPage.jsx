@@ -35,7 +35,8 @@ function Section({ title, icon, children }) {
 export default function SettingsPage() {
   const { reload: reloadSettings } = useSettings()
   const { user } = useAuth()
-  const canSystem = ['admin', 'super_utilisateur'].includes(user?.role)
+  // Modification réservée aux admins et super utilisateurs ; les autres rôles consultent
+  const canEdit = ['admin', 'super_utilisateur'].includes(user?.role)
   const [form, setForm]       = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving,  setSaving]  = useState(false)
@@ -159,7 +160,7 @@ export default function SettingsPage() {
     { k: 'finance',    label: 'Finance & Prêts',     icon: '💰' },
     { k: 'reglement',  label: 'Règlement intérieur', icon: '📋' },
     { k: 'systeme',    label: 'Système',             icon: '⚙️' },
-  ].filter(({ k }) => k !== 'systeme' || canSystem)
+  ].filter(({ k }) => k !== 'systeme' || canEdit)
 
   return (
     <div className="space-y-5">
@@ -179,7 +180,14 @@ export default function SettingsPage() {
         ))}
       </div>
 
+      {!canEdit && (
+        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
+          Consultation seule : seuls les administrateurs et super utilisateurs peuvent modifier les paramètres.
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-5">
+        <fieldset disabled={!canEdit} className="space-y-5 min-w-0">
 
         {/* ══════════ ONGLET IDENTITÉ ══════════════════════════════ */}
         {tab === 'identite' && (
@@ -507,12 +515,16 @@ export default function SettingsPage() {
           </div>
         )}
 
+        </fieldset>
+
         {/* ── Bouton Enregistrer (hors onglet règlement, le PDF s'upload séparément) ── */}
-        <div className="flex justify-end pt-1">
-          <button type="submit" className="btn-primary px-6" disabled={saving}>
-            {saving ? 'Enregistrement…' : 'Enregistrer les paramètres'}
-          </button>
-        </div>
+        {canEdit && (
+          <div className="flex justify-end pt-1">
+            <button type="submit" className="btn-primary px-6" disabled={saving}>
+              {saving ? 'Enregistrement…' : 'Enregistrer les paramètres'}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   )

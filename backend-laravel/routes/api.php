@@ -142,9 +142,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Paramètres association
     // -------------------------------------------------------------------------
     Route::get ('parametres',                  [ParametreController::class, 'index']);
-    Route::put ('parametres',                  [ParametreController::class, 'update']);
-    Route::post('parametres/logo',             [ParametreController::class, 'uploadLogo']);
-    Route::post('parametres/reglement',        [ParametreController::class, 'uploadReglement']);
+    Route::middleware('parametres')->group(function () {
+        Route::put ('parametres',              [ParametreController::class, 'update']);
+        Route::post('parametres/logo',         [ParametreController::class, 'uploadLogo']);
+        Route::post('parametres/reglement',    [ParametreController::class, 'uploadReglement']);
+    });
 
     // -------------------------------------------------------------------------
     // Rapports & Dashboard

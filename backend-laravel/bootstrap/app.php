@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin'     => \App\Http\Middleware\RequireAdmin::class,
             'tresorier' => \App\Http\Middleware\RequireTresorier::class,
+            'parametres' => \App\Http\Middleware\RequireGestionParametres::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

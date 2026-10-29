@@ -50,6 +50,11 @@ class ParametreController extends Controller
             'enable_whatsapp_share'        => 'nullable|boolean',
         ]);
 
+        // L'exercice se modifie seulement dans l'onglet Système (admin et super utilisateur)
+        if (! in_array($request->user()->load('role')->role?->code, ['admin', 'super_utilisateur'], true)) {
+            unset($data['exercice_courant']);
+        }
+
         DB::table('parametres')->updateOrInsert(['id' => 1], $data);
 
         return response()->json(DB::table('parametres')->where('id', 1)->first());
